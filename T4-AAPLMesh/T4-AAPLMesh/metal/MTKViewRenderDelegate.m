@@ -122,12 +122,15 @@
     // 另外描述了对应.mtl文件中的贴图资源路径、光照参数数据等
     
     // Metal中保存mesh数据的容器是MDLMesh类
+    
     // 每个MDLMesh可能包含多个MDLSubmesh
+    
     // 每个MDLSubmesh中保存了模型顶点的index buffer数据(描述如何组织mesh顶点的绘制)
     // 另外还保存了模型的材质贴图信息，用于对应的模型纹理贴图
     
     // AAPLAMesh是官方demo中使用的一个模型加载工具类，用于加载demo中的OBJ模型
     // 实际开发中模型的设置规范要和美术制作统一，顶点buffer的数据格式，数据组织等可能改变 ?? 用3dmax到处
+    // MDLMesh和MDLSubMesh 分别对应 --AAPLMesh 和 AAPLESubMesh
     
     // “模型数据” --> MDLVertexDescriptor描述类 --> 解析 -->  MDLMesh
     // MDLVertexDescriptor 配置顶点的属性结构、格式和数据布局等, 从而将mesh数据读取到顶点bufer中
@@ -150,8 +153,12 @@
     NSLog(@"uv offset = %u", (uint32_t)&((MyVertex*)0)->uv); // 16
     NSLog(@" sizeof(MyVertex) = %lu", sizeof(MyVertex)); // 48
     
-    // Framework Model I/O
+    // 上面定义读取到cpu和gpu数据的格式
+    // 下面定义要读取的内容 
     
+    // MDLVertexDescriptor 定义在 Model I/O Framework 用来描述从模型文件中读取什么数据
+    
+    // 这里暂时只读取顶点位置属性和uv坐标属性，还有法线和切线数据在在之后的光照计算中才会用到，暂时不读取
     MDLVertexDescriptor* modelDesc = MTKModelIOVertexDescriptorFromMetal(vertexDesc);
     modelDesc.attributes[0].name = MDLVertexAttributePosition; //
     modelDesc.attributes[1].name = MDLVertexAttributeTextureCoordinate;
@@ -159,9 +166,7 @@
     // modelDesc.attributes[3].name = MDLVertexAttributeTangent; // 正切
     // modelDesc.attributes[3].name = MDLVertexAttributeBitangent;// 副法
     
-    // 只读取前面的顶点位置属性和uv坐标属性，后面的法线和切线数据在在之后的光照计算中才会用到
-    
-    
+   
     // OBJ模型加载到我们的_meshes保存
     // AAPLMesh的newMeshesFromURL函数来加载模型数据，这样我们的mesh数据就保存到了工程内的_meshes中，
     // 里面包含了 1.顶点buffer数据 2.索引buffer数据 3.模型贴图的引用
