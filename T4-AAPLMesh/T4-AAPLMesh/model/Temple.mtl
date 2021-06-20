@@ -1,0 +1,41 @@
+
+newmtl structure
+// 纹理贴图定义
+// 反射贴图定义
+
+Ns 10.0000  // Ns exponent  反射指数  指定材质的反射指数，定义了反射高光度  该值越高则高光越密集，一般取值范围在0~1000
+Ni 1.5000   // Ni ptical density 指定材质表面的光密度，即折射值 ptical density是光密度值 可在0.001到10之间进行取值 若取值为1.0 光在通过物体的时候不发生弯曲 玻璃的折射率为1.5。取值小于1.0的时候可能会产生奇怪的结果，不推荐
+d 1.0000    //d factor表示物体融入背景的数量，取值范围为0.0~1.0，取值为1.0表示完全不透明，取值为0.0时表示完全透明
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000 // Tf r g b 滤光透射率
+illum 2 // 指定材质的光照模型
+Ka 0.5880 0.5880 0.5880
+// 用RGB颜色值来表示，g和b两参数是可选的，如果只指定了r的值，则g和b的值都等于r的值。三个参数一般取值范围为0.0~1.0，在此范围外的值则相应的增加或减少反射率
+
+Kd 0.5880 0.5880 0.5880
+Ks 0.0000 0.0000 0.0000
+Ke 0.0000 0.0000 0.0000
+// map_Ka around reflection 为环境反射指定颜色纹理文件(.mpc)或程序纹理文件(.cxc)，或是一个位图文件。在渲染的时候，Ka的值将再乘上map_Ka的值
+map_Ka StructureBaseColorMap
+// map_Kd diffuse reflection 为漫反射指定颜色纹理文件(.mpc)或程序纹理文件(.cxc)，或是一个位图文件。作用原理与可选参数与map_Ka同
+map_Kd StructureBaseColorMap
+// map_Ks 镜面反射 Specular
+map_Ks StructureSpecularMap
+// map_bump 凹凸贴图 法线
+map_bump StructureNormalMap
+
+newmtl tree
+Ns 10.0000
+Ni 1.5000
+d 1.0000
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 2
+Ka 0.3608 0.3608 0.3608
+Kd 0.3608 0.3608 0.3608
+Ks 0.0000 0.0000 0.0000
+Ke 0.0000 0.0000 0.0000
+map_Ka FoliageBaseColorMap
+map_Kd FoliageBaseColorMap
+map_Ks FoliageSpecularMap
+map_bump FoliageNormalMap

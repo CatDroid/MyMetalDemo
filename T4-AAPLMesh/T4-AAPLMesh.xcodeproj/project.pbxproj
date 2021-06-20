@@ -1,0 +1,423 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B0BA7BE8267C34AD0041612A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7BE7267C34AD0041612A /* AppDelegate.m */; };
+		B0BA7BEB267C34AD0041612A /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7BEA267C34AD0041612A /* SceneDelegate.m */; };
+		B0BA7BEE267C34AD0041612A /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7BED267C34AD0041612A /* ViewController.m */; };
+		B0BA7BF1267C34AD0041612A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B0BA7BEF267C34AD0041612A /* Main.storyboard */; };
+		B0BA7BF3267C34AD0041612A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0BA7BF2267C34AD0041612A /* Assets.xcassets */; };
+		B0BA7BF6267C34AD0041612A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B0BA7BF4267C34AD0041612A /* LaunchScreen.storyboard */; };
+		B0BA7BF9267C34AD0041612A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7BF8267C34AD0041612A /* main.m */; };
+		B0BA7C04267C356F0041612A /* MTKViewRenderDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7C03267C356F0041612A /* MTKViewRenderDelegate.m */; };
+		B0BA7C0A267C499A0041612A /* MyShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7C09267C499A0041612A /* MyShader.metal */; };
+		B0BA7C0D267C63B50041612A /* FoliageBaseColor.png in Resources */ = {isa = PBXBuildFile; fileRef = B0BA7C0C267C63B50041612A /* FoliageBaseColor.png */; };
+		B0BA7C10267C63C30041612A /* FoliageNormal.png in Resources */ = {isa = PBXBuildFile; fileRef = B0BA7C0F267C63C30041612A /* FoliageNormal.png */; };
+		B0BA7C13267C63D60041612A /* FoliageSpecular.png in Resources */ = {isa = PBXBuildFile; fileRef = B0BA7C12267C63D60041612A /* FoliageSpecular.png */; };
+		B0BA7C16267C63E30041612A /* StructureBaseColor.png in Resources */ = {isa = PBXBuildFile; fileRef = B0BA7C15267C63E30041612A /* StructureBaseColor.png */; };
+		B0BA7C19267C63EF0041612A /* StructureNormal.png in Resources */ = {isa = PBXBuildFile; fileRef = B0BA7C18267C63EF0041612A /* StructureNormal.png */; };
+		B0BA7C1C267C63FA0041612A /* StructureSpecular.png in Resources */ = {isa = PBXBuildFile; fileRef = B0BA7C1B267C63FA0041612A /* StructureSpecular.png */; };
+		B0BA84C1267D9C800041612A /* Temple.mtl in Resources */ = {isa = PBXBuildFile; fileRef = B0BA84C0267D9C800041612A /* Temple.mtl */; };
+		B0BA84C4267D9C8E0041612A /* Temple.obj in Resources */ = {isa = PBXBuildFile; fileRef = B0BA84C3267D9C8E0041612A /* Temple.obj */; };
+		B0BA84C8267D9FE70041612A /* AAPLMesh.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA84C6267D9FE70041612A /* AAPLMesh.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B0BA7BE3267C34AD0041612A /* T4-AAPLMesh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "T4-AAPLMesh.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0BA7BE6267C34AD0041612A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		B0BA7BE7267C34AD0041612A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		B0BA7BE9267C34AD0041612A /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
+		B0BA7BEA267C34AD0041612A /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
+		B0BA7BEC267C34AD0041612A /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		B0BA7BED267C34AD0041612A /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		B0BA7BF0267C34AD0041612A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		B0BA7BF2267C34AD0041612A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B0BA7BF5267C34AD0041612A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		B0BA7BF7267C34AD0041612A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B0BA7BF8267C34AD0041612A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		B0BA7C02267C356F0041612A /* MTKViewRenderDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MTKViewRenderDelegate.h; sourceTree = "<group>"; };
+		B0BA7C03267C356F0041612A /* MTKViewRenderDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MTKViewRenderDelegate.m; sourceTree = "<group>"; };
+		B0BA7C07267C35980041612A /* ShaderType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderType.h; sourceTree = "<group>"; };
+		B0BA7C09267C499A0041612A /* MyShader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MyShader.metal; sourceTree = "<group>"; };
+		B0BA7C0C267C63B50041612A /* FoliageBaseColor.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = FoliageBaseColor.png; sourceTree = "<group>"; };
+		B0BA7C0F267C63C30041612A /* FoliageNormal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = FoliageNormal.png; sourceTree = "<group>"; };
+		B0BA7C12267C63D60041612A /* FoliageSpecular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = FoliageSpecular.png; sourceTree = "<group>"; };
+		B0BA7C15267C63E30041612A /* StructureBaseColor.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = StructureBaseColor.png; sourceTree = "<group>"; };
+		B0BA7C18267C63EF0041612A /* StructureNormal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = StructureNormal.png; sourceTree = "<group>"; };
+		B0BA7C1B267C63FA0041612A /* StructureSpecular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = StructureSpecular.png; sourceTree = "<group>"; };
+		B0BA84C0267D9C800041612A /* Temple.mtl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Temple.mtl; sourceTree = "<group>"; };
+		B0BA84C3267D9C8E0041612A /* Temple.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Temple.obj; sourceTree = "<group>"; };
+		B0BA84C6267D9FE70041612A /* AAPLMesh.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AAPLMesh.m; sourceTree = "<group>"; };
+		B0BA84C7267D9FE70041612A /* AAPLMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AAPLMesh.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B0BA7BE0267C34AD0041612A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B0BA7BDA267C34AD0041612A = {
+			isa = PBXGroup;
+			children = (
+				B0BA7BE5267C34AD0041612A /* T4-AAPLMesh */,
+				B0BA7BE4267C34AD0041612A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B0BA7BE4267C34AD0041612A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B0BA7BE3267C34AD0041612A /* T4-AAPLMesh.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B0BA7BE5267C34AD0041612A /* T4-AAPLMesh */ = {
+			isa = PBXGroup;
+			children = (
+				B0BA84BF267D9C1D0041612A /* model */,
+				B0BA7C01267C35010041612A /* metal */,
+				B0BA7C00267C34EA0041612A /* image */,
+				B0BA7BE6267C34AD0041612A /* AppDelegate.h */,
+				B0BA7BE7267C34AD0041612A /* AppDelegate.m */,
+				B0BA7BE9267C34AD0041612A /* SceneDelegate.h */,
+				B0BA7BEA267C34AD0041612A /* SceneDelegate.m */,
+				B0BA7BEC267C34AD0041612A /* ViewController.h */,
+				B0BA7BED267C34AD0041612A /* ViewController.m */,
+				B0BA7BEF267C34AD0041612A /* Main.storyboard */,
+				B0BA7BF2267C34AD0041612A /* Assets.xcassets */,
+				B0BA7BF4267C34AD0041612A /* LaunchScreen.storyboard */,
+				B0BA7BF7267C34AD0041612A /* Info.plist */,
+				B0BA7BF8267C34AD0041612A /* main.m */,
+			);
+			path = "T4-AAPLMesh";
+			sourceTree = "<group>";
+		};
+		B0BA7C00267C34EA0041612A /* image */ = {
+			isa = PBXGroup;
+			children = (
+				B0BA7C1B267C63FA0041612A /* StructureSpecular.png */,
+				B0BA7C18267C63EF0041612A /* StructureNormal.png */,
+				B0BA7C15267C63E30041612A /* StructureBaseColor.png */,
+				B0BA7C12267C63D60041612A /* FoliageSpecular.png */,
+				B0BA7C0F267C63C30041612A /* FoliageNormal.png */,
+				B0BA7C0C267C63B50041612A /* FoliageBaseColor.png */,
+			);
+			path = image;
+			sourceTree = "<group>";
+		};
+		B0BA7C01267C35010041612A /* metal */ = {
+			isa = PBXGroup;
+			children = (
+				B0BA7C02267C356F0041612A /* MTKViewRenderDelegate.h */,
+				B0BA7C03267C356F0041612A /* MTKViewRenderDelegate.m */,
+				B0BA7C07267C35980041612A /* ShaderType.h */,
+				B0BA7C09267C499A0041612A /* MyShader.metal */,
+			);
+			path = metal;
+			sourceTree = "<group>";
+		};
+		B0BA84BF267D9C1D0041612A /* model */ = {
+			isa = PBXGroup;
+			children = (
+				B0BA84C7267D9FE70041612A /* AAPLMesh.h */,
+				B0BA84C6267D9FE70041612A /* AAPLMesh.m */,
+				B0BA84C3267D9C8E0041612A /* Temple.obj */,
+				B0BA84C0267D9C800041612A /* Temple.mtl */,
+			);
+			path = model;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B0BA7BE2267C34AD0041612A /* T4-AAPLMesh */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B0BA7BFC267C34AD0041612A /* Build configuration list for PBXNativeTarget "T4-AAPLMesh" */;
+			buildPhases = (
+				B0BA7BDF267C34AD0041612A /* Sources */,
+				B0BA7BE0267C34AD0041612A /* Frameworks */,
+				B0BA7BE1267C34AD0041612A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "T4-AAPLMesh";
+			productName = "T4-AAPLMesh";
+			productReference = B0BA7BE3267C34AD0041612A /* T4-AAPLMesh.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B0BA7BDB267C34AD0041612A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1240;
+				TargetAttributes = {
+					B0BA7BE2267C34AD0041612A = {
+						CreatedOnToolsVersion = 12.4;
+					};
+				};
+			};
+			buildConfigurationList = B0BA7BDE267C34AD0041612A /* Build configuration list for PBXProject "T4-AAPLMesh" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B0BA7BDA267C34AD0041612A;
+			productRefGroup = B0BA7BE4267C34AD0041612A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B0BA7BE2267C34AD0041612A /* T4-AAPLMesh */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B0BA7BE1267C34AD0041612A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B0BA7C0D267C63B50041612A /* FoliageBaseColor.png in Resources */,
+				B0BA7BF6267C34AD0041612A /* LaunchScreen.storyboard in Resources */,
+				B0BA84C1267D9C800041612A /* Temple.mtl in Resources */,
+				B0BA7C13267C63D60041612A /* FoliageSpecular.png in Resources */,
+				B0BA7BF3267C34AD0041612A /* Assets.xcassets in Resources */,
+				B0BA7C1C267C63FA0041612A /* StructureSpecular.png in Resources */,
+				B0BA7C19267C63EF0041612A /* StructureNormal.png in Resources */,
+				B0BA7BF1267C34AD0041612A /* Main.storyboard in Resources */,
+				B0BA7C16267C63E30041612A /* StructureBaseColor.png in Resources */,
+				B0BA84C4267D9C8E0041612A /* Temple.obj in Resources */,
+				B0BA7C10267C63C30041612A /* FoliageNormal.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B0BA7BDF267C34AD0041612A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B0BA7C0A267C499A0041612A /* MyShader.metal in Sources */,
+				B0BA7BEE267C34AD0041612A /* ViewController.m in Sources */,
+				B0BA7BE8267C34AD0041612A /* AppDelegate.m in Sources */,
+				B0BA84C8267D9FE70041612A /* AAPLMesh.m in Sources */,
+				B0BA7C04267C356F0041612A /* MTKViewRenderDelegate.m in Sources */,
+				B0BA7BF9267C34AD0041612A /* main.m in Sources */,
+				B0BA7BEB267C34AD0041612A /* SceneDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		B0BA7BEF267C34AD0041612A /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B0BA7BF0267C34AD0041612A /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		B0BA7BF4267C34AD0041612A /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B0BA7BF5267C34AD0041612A /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		B0BA7BFA267C34AD0041612A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		B0BA7BFB267C34AD0041612A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B0BA7BFD267C34AD0041612A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = FKVLYCJL24;
+				INFOPLIST_FILE = "T4-AAPLMesh/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "hanlonn.T4-AAPLMesh";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B0BA7BFE267C34AD0041612A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = FKVLYCJL24;
+				INFOPLIST_FILE = "T4-AAPLMesh/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "hanlonn.T4-AAPLMesh";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B0BA7BDE267C34AD0041612A /* Build configuration list for PBXProject "T4-AAPLMesh" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B0BA7BFA267C34AD0041612A /* Debug */,
+				B0BA7BFB267C34AD0041612A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B0BA7BFC267C34AD0041612A /* Build configuration list for PBXNativeTarget "T4-AAPLMesh" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B0BA7BFD267C34AD0041612A /* Debug */,
+				B0BA7BFE267C34AD0041612A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B0BA7BDB267C34AD0041612A /* Project object */;
+}
