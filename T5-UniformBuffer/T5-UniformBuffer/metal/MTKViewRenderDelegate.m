@@ -197,7 +197,7 @@
     float aspect = view.frame.size.width / view.frame.size.height ; // 宽高比
     float fov = 65.0f * (M_PI / 180.0f) ; // 垂直方向上的视角
     float nearPlane = 1.0;
-    float farPlane = 1000.0;
+    float farPlane = 1500.0;
     _projectionMatrix = matrix_perspective_left_hand(fov, aspect, nearPlane, farPlane);
     
     // 先分配MTLBuffer的大小 设置为GPU和CPU共享  后面更新内容 _transformUniformBuffer.content
@@ -212,15 +212,15 @@
     uniform->projectionMatrix = _projectionMatrix;
     
 #if 1
-    matrix_float4x4 location = matrix4x4_translation(0,0,800.5); // 为什么在投影前 摄像机坐标系下 z为正数 还可以显示的??
-    matrix_float4x4 rotateX = matrix4x4_rotation(-0.15, 1.0, 0.0, 0.0); // (radians=-0.15,{1.0, 0.0, 0.0}) 左手坐标系 左手螺旋
+    matrix_float4x4 location = matrix4x4_translation(0,0,1000); // 为什么在投影前 摄像机坐标系下 z为正数 还可以显示的??
+    matrix_float4x4 rotateX = matrix4x4_rotation(-0.5, 1.0, 0.0, 0.0); // (radians=-0.15,{1.0, 0.0, 0.0}) 左手坐标系 左手螺旋
     matrix_float4x4 rotateY = matrix4x4_rotation(_rotation, 0.0, 1.0, 0.0);
     matrix_float4x4 viewMatrix = matrix_multiply(location ,matrix_multiply(rotateX, rotateY));
 #else
-    matrix_float4x4 location = matrix4x4_translation(0,0,-800.5); // ??
-    matrix_float4x4 rotateX = matrix4x4_rotation(-0.15, 1.0, 0.0, 0.0); // (radians=-0.15,{1.0, 0.0, 0.0}) 左手坐标系 左手螺旋
+    matrix_float4x4 location = matrix4x4_translation(0,0,-1000); // ??
+    matrix_float4x4 rotateX = matrix4x4_rotation(0.5, 1.0, 0.0, 0.0); // (radians=-0.15,{1.0, 0.0, 0.0}) 左手坐标系 左手螺旋
     matrix_float4x4 rotateY = matrix4x4_rotation(_rotation, 0.0, 1.0, 0.0);
-    matrix_float4x4 viewMatrix = matrix_multiply( rotateY,matrix_multiply( rotateX, location));
+    matrix_float4x4 viewMatrix = matrix_multiply(rotateY, matrix_multiply(rotateX, location));
     viewMatrix = matrix_invert(viewMatrix);
 #endif
     
