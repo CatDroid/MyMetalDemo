@@ -314,7 +314,17 @@
     
     [encoder pushDebugGroup:@"RenderPass"];
     
+    // 面剔除(Face culling)
+    
+    // 指定图元的正面绘制时顺时针方向处理 (MTLWindingClockwise) 还是逆时针方向处理 (MTLWindingCounterClockwise) ，
+    // 默认值是 MTLWindingClockwise  !! 顺时针
+    
+    // OpenGL允许检查所有正面朝向（Front facing）观察者的面，并渲染它们，而丢弃所有背面朝向（Back facing）的面
+    // 默认情况下，逆时针的顶点连接顺序被定义为三角形的正面
+    
     [encoder setCullMode:MTLCullModeBack]; // 背面图元裁剪 Culls back-facing primitives.
+    //[encoder setFrontFacingWinding:MTLWindingClockwise];
+    [encoder setFrontFacingWinding:MTLWindingCounterClockwise];
     
     [encoder setRenderPipelineState:_renderPipelineState];
     [encoder setDepthStencilState:_depthStencilState];
