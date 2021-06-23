@@ -22,6 +22,7 @@
     id <MTLDepthStencilState> _depthState;      // 深度测试方式和是否可写
     
     id <MTLBuffer> _vertexbuffer ; // MTLResource的子类(子协议)
+    id <MTLBuffer> _vertexbuffer2; //
     
 }
 
@@ -129,35 +130,66 @@
 - (void) _loadAssets:(id<MTLDevice>) gpu
 {
     static const Vertex vert[] = {
-        {  {0,    1.0}  },
-        {  {1.0, -1.0}  },
-        {  {-1.0,-1.0}  }
+        {  {-1.0, 1.0}  },
+        {  { 0.0, 0.0}  },
+        {  {-1.0, 0.0}  }
     };
     _vertexbuffer = [gpu newBufferWithBytes:vert length:sizeof(vert) options:MTLResourceStorageModeShared];
+    
+    static const Vertex vert2[] = {
+        {  {1.0, 0.0}  },
+        {  {0.0, -1.0}  },
+        {  {1.0, -1.0 } }
+    };
+    _vertexbuffer2 = [gpu newBufferWithBytes:vert2 length:sizeof(vert) options:MTLResourceStorageModeShared];
+    
 }
 
 
 #pragma mark - MTKViewDelegate
+
 - (void) drawWithLayer:(nonnull CAMetalLayer *) layer
 {
+    [self drawWithLayerParallel:layer];
+    //[self drawWithLayerTwoRenderPass:layer];
+}
+
+- (void) drawWithLayerTwoRenderPass:(nonnull CAMetalLayer *) layer
+{
+    /*
+     CAMetalDrawable 表示 ”一个可显示的缓冲区“
+     它提供一个 符合“MTLTexture协议” 的对象，该协议可用于为Metal创建“渲染目标”
+     
+     CAMetalLayer维护一个内部“纹理池”，用于展示
+     为了将 “纹理重新用于” 新的CAMetalDrawable, 任何先前的CAMetalDrawable必须已被释放，并呈现另一个CAMetalDrawable
+     
+     CAMetalDrawable 有两个属性
+        @property(readonly) id<MTLTexture> texture;     //  可用来创建 MTLRenderTargetDescriptor 的 MTLTexture纹理对象
+        @property(readonly) CAMetalLayer *layer;        //  负责显示这个drawable的CAMetalLayer    [layer nextDrawable] 生成的drawable的layer就是这个layer本身
+     */
     id <CAMetalDrawable> drawable = nil ;
-    
+     
+
     int tryCount = 0 ;
     
     // 它使用 CAMetalLayer 对象来保存视图的内容
     while (!drawable) {
-        drawable = [layer nextDrawable];
+        drawable = [layer nextDrawable]; // layer -- drawable(包含可重用的texture)
         tryCount ++;
         if (tryCount > 1) {
             NSLog(@"CAMetalLayer nextDrawable try %i", tryCount);
         }
     }
+    // NSLog(@"CAMetalLayer(%p) drawalbe = %p(texture = %p layer = %p)", layer, drawable, drawable.texture, drawable.layer);
+    // drawable.layer就是[layer nextDrawable]的layer  drawable和texture都有多个 texture目前看来有3个 drawable目前看来有8个
+    // CAMetalDrawable和MTLTexture对象没有绑定关系 也没有一一对应关系
     
     /*
      创建默认的 render pass desc.
  
-     使用 colorAttachments 属性的方法 setObject:atIndexedSubscript:设置所需的颜色附件
-     分别使用 depthAttachment 和 stencilAttachment 属性设置所需的深度和模板附件
+     使用 colorAttachments属性 的setObject:atIndexedSubscript:的方法设置所需的颜色附件
+     使用 depthAttachment属性   设置所需的深度附件
+     使用 stencilAttachment属性 设置所需的模板附件
      */
     MTLRenderPassDescriptor* framebuffer = [MTLRenderPassDescriptor renderPassDescriptor];
     
@@ -167,6 +199,9 @@
     colorAttachmenDesc.loadAction = MTLLoadActionClear ; // ????
     colorAttachmenDesc.storeAction = MTLStoreActionStore; // ???
     
+    // MTLRenderPassDepthAttachmentDescriptor  上面是颜色附件 这个是深度附件 父类都是 MTLRenderPassAttachmentDescriptor
+    
+    
     [framebuffer.colorAttachments setObject:colorAttachmenDesc atIndexedSubscript:0]; // render pass的颜色0号附件
     // 如果要做深度测试。这个 renderPassDesc 必须要配置 深度attachment
     
@@ -174,35 +209,61 @@
     id<MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
     commandBuffer.label = @"MyCommand";
          
-    // 创建命令编码器 用于 把一个即将要渲染的pass编码到buffer中
-    id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:framebuffer]; //这是一个跟view相关的 *****
-    renderEncoder.label = @"MyRenderEncoder";
+    {
+        // 创建命令编码器 用于 把一个即将要渲染的pass编码到buffer中
+        id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:framebuffer]; //这是一个跟view相关的 *****
+        renderEncoder.label = @"render1";
+        
+        [renderEncoder pushDebugGroup:@"renderDbg1"];
+        [renderEncoder setRenderPipelineState:_pipelineState];  // 着色器 颜色输出缓冲区格式
+        // [renderEncoder setDepthStencilState:_depthState];       // 深度测试方式 深度可写   ----- 如果这里配置需要深度测试 那么renderpassDesc必须配置深度附件
+        
+        // SIGABRT
+        // validateDepthStencilState:4140: failed assertion `MTLDepthStencilDescriptor sets depth test
+        // but MTLRenderPassDescriptor has a nil depthAttachment texture'
+        // renderpass并没有设置深度纹理 但是encoder设置需要深度测试
+        
+        
+        [renderEncoder setVertexBuffer:_vertexbuffer offset:0 atIndex:0];  // 设置vbo
+        
+        // 调用一次drawcall绘制三角形
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];// RenderObject RenderTarget
+        
+        // pushDebugGroup和popDebugGroup只是做一个指令阶段的标记，方便我们在截帧调试的时候观察
+        [renderEncoder popDebugGroup];
+        
+        // 标示当前render pass指令结束
+        [renderEncoder endEncoding];
+        
+    } //  这样算一个 a rendering pass
     
-    [renderEncoder pushDebugGroup:@"DrawTriangle"];
-    [renderEncoder setRenderPipelineState:_pipelineState];  // 着色器 颜色输出缓冲区格式
-    // [renderEncoder setDepthStencilState:_depthState];       // 深度测试方式 深度可写   ----- 如果这里配置需要深度测试 那么renderpassDesc必须配置深度附件
+    //colorAttachmenDesc.loadAction = MTLLoadActionDontCare; // ???? 闪烁 ???
+    colorAttachmenDesc.loadAction = MTLLoadActionLoad; //  ??? 这样正常的 ??? 这样第二遍draw的时候不会清除 MTLLoadActionClear
+    colorAttachmenDesc.storeAction = MTLStoreActionStore;
+    [framebuffer.colorAttachments setObject:colorAttachmenDesc atIndexedSubscript:0];
     
-    // SIGABRT
-    // validateDepthStencilState:4140: failed assertion `MTLDepthStencilDescriptor sets depth test
-    // but MTLRenderPassDescriptor has a nil depthAttachment texture'
-    // renderpass并没有设置深度纹理 但是encoder设置需要深度测试
-    
-    //[renderEncoder setVertexTexture:(nullable id<MTLTexture>) atIndex:(NSUInteger)]
-    [renderEncoder setVertexBuffer:_vertexbuffer offset:0 atIndex:0];  // 设置vbo
-    
-    // 调用一次drawcall绘制三角形
-    [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];// RenderObject RenderTarget
-    
-    // pushDebugGroup和popDebugGroup只是做一个指令阶段的标记，方便我们在截帧调试的时候观察
-    [renderEncoder popDebugGroup];
-    
-    // 标示当前render pass指令结束
-    [renderEncoder endEncoding];
+    { // 第二个encoder
+        
+        id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:framebuffer];
+        renderEncoder.label = @"render2";
+        [renderEncoder pushDebugGroup:@"renderDbg1"];
+        
+        [renderEncoder setRenderPipelineState:_pipelineState];
+        
+        [renderEncoder setVertexBuffer:_vertexbuffer2 offset:0 atIndex:0];
+        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+        
+        
+        [renderEncoder popDebugGroup];
+        [renderEncoder endEncoding];
+        // `Command encoder released without endEncoding'
+    }
+    //  多次渲染 编码到 单个命令缓冲区中。每次渲染都会根据renderpass描述符 清除缓冲
     
     
     // 当前的渲染目标设置为我们MTKView的framebuffer，将渲染结果绘制到视图 ?? 渲染目标 可以不是view ??
     // view.currentDrawable 获取当前帧的可绘制对象 这个包含了 颜色 深度模板 等纹理
-    [commandBuffer presentDrawable:drawable];
+    [commandBuffer presentDrawable:drawable]; // 命令队列把要执行的命令buffer调度后 调用drawable的present方法
     
     
     // 提交commandBuffer到commandQueue，等待被GPU执行
@@ -210,6 +271,83 @@
     
 }
 
+// 在并行渲染 Pass 中渲染 Command Encoders 的执行顺序
+- (void) drawWithLayerParallel:(nonnull CAMetalLayer *) layer
+{
+    // 这些从属的 MTLRenderCommandEncoder 对象都共享相同的 command buffer 和 渲染 pass descriptor
+    // 渲染指令被编码进入 command buffer 的顺序和 Encoder 创建的顺序相同
+    
+    id <CAMetalDrawable> drawable = [layer nextDrawable];
+    if (drawable == nil)
+    {
+        NSLog(@"drawWithLayerParallel CAMetalLayer nextDrawable fail ");
+        return ;
+    }
+    
+    
+    MTLRenderPassDescriptor* framebuffer = [MTLRenderPassDescriptor renderPassDescriptor];
+    
+    MTLRenderPassColorAttachmentDescriptor* colorAttachmenDesc = [[MTLRenderPassColorAttachmentDescriptor alloc] init];
+    colorAttachmenDesc.clearColor = MTLClearColorMake(0.5, 0.5, 0.0, 1.0);
+    colorAttachmenDesc.texture = drawable.texture ;
+    colorAttachmenDesc.loadAction = MTLLoadActionClear ;
+    colorAttachmenDesc.storeAction = MTLStoreActionStore;
+    
+    [framebuffer.colorAttachments setObject:colorAttachmenDesc atIndexedSubscript:0];
+    
+    
+    id<MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
+    commandBuffer.label = @"ParallelCommand";
+    /*
+     大多数 Metal framework 对象, 都提供 label 属性
+     比如 command buffers, pipeline states,和 resources，
+     你可以使用这个属性, 为每个对象指定有意义的名称
+     这些label出现在 "Xcode帧捕捉调试" 界面，使得更容易识别出各个对象。
+     */
+    
+    id <MTLParallelRenderCommandEncoder> parallelRCE = [commandBuffer parallelRenderCommandEncoderWithDescriptor:framebuffer];
+    
+  
+    id <MTLRenderCommandEncoder> rCE1 = [parallelRCE renderCommandEncoder];
+    {
+        rCE1.label = @"rCE1";
+        [rCE1 pushDebugGroup:@"rCE1Dbg"];
+        
+        [rCE1 setRenderPipelineState:_pipelineState];
+        [rCE1 setVertexBuffer:_vertexbuffer offset:0 atIndex:0];
+        [rCE1 drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+        
+        [rCE1 popDebugGroup];
+    }
+    
+     
+    id <MTLRenderCommandEncoder> rCE2 = [parallelRCE renderCommandEncoder];
+    {
+        rCE2.label = @"rCE2";
+        [rCE2 pushDebugGroup:@"rCE2Dbg"];
+        
+        
+        [rCE2 setRenderPipelineState:_pipelineState];
+        [rCE2 setVertexBuffer:_vertexbuffer2 offset:0 atIndex:0];
+        [rCE2 drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+        
+        
+        [rCE2 popDebugGroup];
+    }
+    
+    
+    
+    [rCE2 endEncoding]; // 跟结束的位置没有关系 跟创建的位置有关系
+    [rCE1 endEncoding];
+    
+    [parallelRCE endEncoding];// failed assertion `encoding in progress'
+    
+    
+    
+    [commandBuffer presentDrawable:drawable];
+    [commandBuffer commit];
+    
+}
 
 //-(MTLRenderPassDescriptor*) currentFramebuffer
 //{

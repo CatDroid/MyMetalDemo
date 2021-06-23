@@ -55,12 +55,15 @@
 {
     id<MTLDevice> device = MTLCreateSystemDefaultDevice();
     
-    
+    /*
+     CAMetalLayer的父类是CALayer
+     当要使用metal来渲染/绘制某个图层的内容(layer's content)时候,比如渲染到View中,就要创建CAMetalLayer
+     */
     renderLayer = [CAMetalLayer layer];
     renderLayer.device = device;
     renderLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB; // ??? sRGB和非sRGB区别 
     
-    // CAMetalLayer 分配 他的MTLTexture 只带有MTLTextureUsageRenderTarget这个usage flag
+    // YES(默认值), CAMetalLayer 在创建他的MTLTexture对象们(纹理缓冲池), 只会带有MTLTextureUsageRenderTarget这个usage flag
     // Core Animation 可以优化纹理以用于显示目的。
     // 但是不能 sampling 和  pixel read/write 要支持这些操作的话 设置为NO
     renderLayer.framebufferOnly = YES;
@@ -121,15 +124,26 @@
      */
     self.view.contentScaleFactor = kScale; // ？？？
     
-    
-    // CADisplayLink 这些跟CAMetalLayer和UIView没有直接关系
-    displayLink = [CADisplayLink displayLinkWithTarget:self  selector: @selector(render)];
+    /*
+        CADisplayLink是一个定时器对象
+        允许你的应用的draw/渲染 和 显示器刷新帧率 保持一致
+        CADisplayLink 这些跟CAMetalLayer和UIView没有直接关系
+        创建一个新的CADisplayLink 并且持有target
+     */
+    displayLink = [CADisplayLink displayLinkWithTarget:self  selector: @selector(render:)];
     [displayLink addToRunLoop: [NSRunLoop currentRunLoop] forMode: NSDefaultRunLoopMode];
+    
+    /*
+        返回与给定UISreen相关的CADisplayLink
+        使用CADisplayLink 可以将绘制代码 和屏幕的刷新率同步
+     */
+    // (UIScreen*)screen
+    // _displayLink = [screen displayLinkWithTarget:self selector:@selector(render)];
     
 }
 
 // CADisplayLink 在 NSRunLoop currentRunLoop 中回调
--(void) render
+- (void)render:(CADisplayLink *)sender;
 {
     [_render drawWithLayer:renderLayer];
     
@@ -139,6 +153,11 @@
 // 析构函数 默认会从从子到父执行 不用自己调用
 -(void) dealloc
 {
+    /*
+     1. CADisplayLink会从所有的run loop modes中移除, 从而使用运行循环停止
+     2. CADisplayLink同时会释放对target的持有
+     3. invalidate 是线程安全的 这意味着它可以不是CADisplayLink的
+     */
     [displayLink invalidate];
 }
 

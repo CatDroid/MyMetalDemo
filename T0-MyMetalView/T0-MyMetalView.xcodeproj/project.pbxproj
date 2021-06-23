@@ -15,7 +15,6 @@
 		B06BBBC02680B7690067BDF5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B06BBBBE2680B7690067BDF5 /* LaunchScreen.storyboard */; };
 		B06BBBC32680B7690067BDF5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BBBC22680B7690067BDF5 /* main.m */; };
 		B06BBBD02680B79F0067BDF5 /* MyShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B06BBBCD2680B79F0067BDF5 /* MyShader.metal */; };
-		B06BBE7B2680C0A80067BDF5 /* MyMetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BBE7A2680C0A80067BDF5 /* MyMetalView.m */; };
 		B06BC671268185C30067BDF5 /* MTKViewDelegateRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BC670268185C30067BDF5 /* MTKViewDelegateRender.m */; };
 /* End PBXBuildFile section */
 
@@ -34,8 +33,6 @@
 		B06BBBC22680B7690067BDF5 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		B06BBBCD2680B79F0067BDF5 /* MyShader.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; name = MyShader.metal; path = "../../../T1-Triangle/T1-Triangle/T1-Triangle/metal/MyShader.metal"; sourceTree = "<group>"; };
 		B06BBBCE2680B79F0067BDF5 /* ShaderTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShaderTypes.h; path = "../../../T1-Triangle/T1-Triangle/T1-Triangle/metal/ShaderTypes.h"; sourceTree = "<group>"; };
-		B06BBE792680C0A80067BDF5 /* MyMetalView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MyMetalView.h; sourceTree = "<group>"; };
-		B06BBE7A2680C0A80067BDF5 /* MyMetalView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MyMetalView.m; sourceTree = "<group>"; };
 		B06BC66F268185C30067BDF5 /* MTKViewDelegateRender.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTKViewDelegateRender.h; sourceTree = "<group>"; };
 		B06BC670268185C30067BDF5 /* MTKViewDelegateRender.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTKViewDelegateRender.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -93,8 +90,6 @@
 				B06BC670268185C30067BDF5 /* MTKViewDelegateRender.m */,
 				B06BBBCD2680B79F0067BDF5 /* MyShader.metal */,
 				B06BBBCE2680B79F0067BDF5 /* ShaderTypes.h */,
-				B06BBE792680C0A80067BDF5 /* MyMetalView.h */,
-				B06BBE7A2680C0A80067BDF5 /* MyMetalView.m */,
 			);
 			path = metal;
 			sourceTree = "<group>";
@@ -173,7 +168,6 @@
 				B06BBBB22680B7680067BDF5 /* AppDelegate.m in Sources */,
 				B06BBBC32680B7690067BDF5 /* main.m in Sources */,
 				B06BBBB52680B7680067BDF5 /* SceneDelegate.m in Sources */,
-				B06BBE7B2680C0A80067BDF5 /* MyMetalView.m in Sources */,
 				B06BC671268185C30067BDF5 /* MTKViewDelegateRender.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
