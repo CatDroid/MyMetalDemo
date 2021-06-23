@@ -11,7 +11,7 @@ Header defining preprocessor conditional values that control the configuration o
 // When disabled, rendering occurs on a background thread, allowing
 // the UI to respond more quickly in some cases because events can be 
 // processed asynchronously from potentially CPU-intensive rendering code.
-#define RENDER_ON_MAIN_THREAD 1
+#define RENDER_ON_MAIN_THREAD 0
 
 // When enabled, the view continually animates and renders
 // frames 60 times a second.  When disabled, rendering is event
