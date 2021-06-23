@@ -74,12 +74,12 @@ Custom view base class
     [self stopRenderLoop];
 }
 
-#else // IF !ANIMATION_RENDERING
+#else // IF !ANIMATION_RENDERING 如果是播放动画的方式 就不会使用UI触发的方式 而是使用CADisplayLink的方式
 
 // Override methods needed to handle event-based rendering
 // 事件驱动型渲染
 
-- (void)displayLayer:(CALayer *)layer
+- (void)displayLayer:(CALayer *)layer // CALayer::display 
 {
     [self renderOnEvent]; // 事件触发绘制
 }

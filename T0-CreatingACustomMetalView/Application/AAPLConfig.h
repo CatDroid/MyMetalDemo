@@ -16,6 +16,9 @@ Header defining preprocessor conditional values that control the configuration o
 // When enabled, the view continually animates and renders
 // frames 60 times a second.  When disabled, rendering is event
 // based, occurring when a UI event requests a redraw.
+
+// 如果配置了动画效果 需要创建CADisplayLink，和创建NSThread单独线程，驱动渲染
+// 否则从 View::drawRect  CALayer::drawLayer等触发渲染 （UI event） 更重要是UI没有变化的话，不会触发draw
 #define ANIMATION_RENDERING   1
 
 // 打开的话, 只要view尺寸发生变化，drawable绘制对象的大小会自动更新

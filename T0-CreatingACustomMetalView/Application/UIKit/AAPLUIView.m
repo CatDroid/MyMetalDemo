@@ -45,7 +45,10 @@ Customized view for iOS & tvOS
 {
     [super didMoveToWindow];
 
-#if ANIMATION_RENDERING  // 如果配置了动画效果 需要创建CADisplayLink
+    // 如果配置了动画效果 需要创建CADisplayLink，和创建NSThread单独线程，驱动渲染
+    // 否则从 View::drawRect  CALayer::drawLayer等触发渲染 更重要是UI没有变化的话，不会触发draw
+    
+#if ANIMATION_RENDERING
     if(self.window == nil)
     {
         // If moving off of a window destroy the display link.
