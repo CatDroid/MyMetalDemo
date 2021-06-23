@@ -14,7 +14,33 @@
 {
     MTKViewDelegateRender* _render ;
 }
+@end
 
+
+@interface MTKView(MyMTKView)
+
+@end
+
+@implementation MTKView(MyMTKView)
+
+
+//- (void)drawRect:(CGRect)rect // 会导致MTKView::draw --> MTKViewDelete:drawInMTKView 没有调用
+//{
+//    [super drawRect:rect];
+//    NSLog(@"drawRect called ");
+//}
+
+//  MTKView::draw --> MTKView::drawRect:
+ 
+// 分类实现了原来类的方法
+// 这样会覆盖原来的方法 !!
+// Category is implementing a method which will also be implemented by its primary class
+
+ 
+//- (void)draw
+//{
+//    NSLog(@"draw called ");
+//}
 
 @end
 
@@ -36,9 +62,9 @@
     
   
     // 提供三种渲染模式。分别由两个变量控制  pause每次渲染完暂停 enableSetNeedsDisplay允许View调用setNeedDispaly触发渲染
-    // 默认模式，paused 和 enableSetNeedsDisplay 都是NO，渲染由内部的定时器驱动
-    // paused 和 enableSetNeedsDisplay 都是YES，由view的渲染通知驱动，比如调用setNeedsDisplay ??
-    // paused 是 YES  enableSetNeedsDisplay 是 NO 这个由主动调用MTKView 的draw方法  ??
+    // paused = NO   enableSetNeedsDisplay = NO   渲染由内部的定时器驱动
+    // paused = YES  enableSetNeedsDisplay = YES  由view的渲染通知驱动，比如调用setNeedsDisplay
+    // paused = YES  enableSetNeedsDisplay = NO   这个由主动调用MTKView 的draw方法（就是外部在主线程上主动调用draw函数）
     
     // 渲染方式：
     // 子类MTKView，在drawRect:方法里实现
@@ -56,8 +82,20 @@
     _view.device = MTLCreateSystemDefaultDevice();
     
     // 默认背景色: 灰色
-    _view.backgroundColor = [UIColor grayColor];
+    _view.backgroundColor = [UIColor greenColor];
     
+#ifdef TEST_SET_NEED_DISPLAY
+    _view.paused = YES ;
+    _view.enableSetNeedsDisplay = YES ;
+    // YES+YES 会默认调用一次MTKView:Draw->MTKViewDelegate:drawInMTKView 然后就要setNeedsDisplay才会触发draw了
+    
+    //dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
+    dispatch_queue_t queue = dispatch_get_main_queue();
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), queue, ^(){
+        // UI API called on a background thread: -[UIView setNeedsDisplay]
+        [_view setNeedsDisplay]; // 要在主线程上调用   会导致 (void)drawRect:(CGRect)rect 被调用
+    });
+#endif
     
     if (!_view.device)
     {
@@ -72,8 +110,8 @@
     // Render初始化的时候 会设置MTKView的属性
     _render = [[MTKViewDelegateRender alloc] initWithMetalKitView:_view];
     _view.delegate = _render ; // delegate是个弱引用
-    
-     
+
+
 }
 
 
