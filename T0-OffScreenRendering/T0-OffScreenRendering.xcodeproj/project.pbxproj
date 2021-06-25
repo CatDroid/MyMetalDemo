@@ -23,6 +23,7 @@
 		B06BCABC26843B440067BDF5 /* ScreenMesh.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCABB26843B440067BDF5 /* ScreenMesh.m */; };
 		B06BCAE326858F7B0067BDF5 /* ParallelTriangleRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCAE226858F7B0067BDF5 /* ParallelTriangleRender.m */; };
 		B06BCAE7268590C30067BDF5 /* ParallelTriangleMesh.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCAE6268590C30067BDF5 /* ParallelTriangleMesh.m */; };
+		B06BCAF02685E2780067BDF5 /* MetalVideoRecorder.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCAEF2685E2780067BDF5 /* MetalVideoRecorder.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +57,8 @@
 		B06BCAE226858F7B0067BDF5 /* ParallelTriangleRender.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ParallelTriangleRender.m; sourceTree = "<group>"; };
 		B06BCAE5268590C30067BDF5 /* ParallelTriangleMesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ParallelTriangleMesh.h; sourceTree = "<group>"; };
 		B06BCAE6268590C30067BDF5 /* ParallelTriangleMesh.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ParallelTriangleMesh.m; sourceTree = "<group>"; };
+		B06BCAEE2685E2780067BDF5 /* MetalVideoRecorder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MetalVideoRecorder.h; sourceTree = "<group>"; };
+		B06BCAEF2685E2780067BDF5 /* MetalVideoRecorder.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalVideoRecorder.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +110,7 @@
 		B06BCA902682D83C0067BDF5 /* Metal */ = {
 			isa = PBXGroup;
 			children = (
+				B06BCAED2685E22A0067BDF5 /* MetalRecorder */,
 				B06BCA9826831C960067BDF5 /* Utility */,
 				B06BCA9726831BDF0067BDF5 /* MetalRender */,
 				B06BCA912682D8470067BDF5 /* MetalView */,
@@ -151,6 +155,15 @@
 			children = (
 			);
 			path = Utility;
+			sourceTree = "<group>";
+		};
+		B06BCAED2685E22A0067BDF5 /* MetalRecorder */ = {
+			isa = PBXGroup;
+			children = (
+				B06BCAEE2685E2780067BDF5 /* MetalVideoRecorder.h */,
+				B06BCAEF2685E2780067BDF5 /* MetalVideoRecorder.m */,
+			);
+			path = MetalRecorder;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -233,6 +246,7 @@
 				B06BCAE7268590C30067BDF5 /* ParallelTriangleMesh.m in Sources */,
 				B06BCABC26843B440067BDF5 /* ScreenMesh.m in Sources */,
 				B06BCAB2268418D80067BDF5 /* ScreenShader.metal in Sources */,
+				B06BCAF02685E2780067BDF5 /* MetalVideoRecorder.m in Sources */,
 				B06BCAE326858F7B0067BDF5 /* ParallelTriangleRender.m in Sources */,
 				B06BCAAA2683216D0067BDF5 /* MetalViewDelegateRender.m in Sources */,
 			);

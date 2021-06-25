@@ -12,8 +12,9 @@
 
 #import "MetalFrameBuffer.h"
 
-#import "ScreenRender.h"
 #import "ParallelTriangleRender.h"
+#import "ScreenRender.h"
+#import "MetalVideoRecorder.h"
 
 @implementation MetalViewDelegateRender
 {
@@ -23,6 +24,10 @@
     
     ScreenRender* _onscreenRender ;
     ParallelTriangleRender* _triangleRender ;
+    
+    MetalVideoRecorder* recorder ;
+    
+    CGSize _drawableSize ;
     
 }
 
@@ -49,6 +54,8 @@
 
     view.sampleCount = 1 ;
     view.clearColor = MTLClearColorMake(1.0, 1.0, 0.0, 1.0);
+    
+    _drawableSize = view.metalLayer.drawableSize ;
 
     // 使用设备上下文创建了全局唯一的指令队列对象
     id<MTLDevice> gpu = view.device;
@@ -61,6 +68,9 @@
     _onscreenRender = [[ScreenRender alloc] initWithDevice:gpu WithView:view];
     _triangleRender = [[ParallelTriangleRender alloc] initWithDevice:gpu];
     _offscreenFramebuffer = [[MetalFrameBuffer alloc] initWithDevice:gpu WithSize:view.metalLayer.drawableSize];
+    
+    //recorder = [[MetalVideoRecorder alloc] init:_drawableSize];
+    //[recorder startRecording];
 }
 
 
@@ -86,8 +96,14 @@
                  WithInputTexture:_offscreenFramebuffer.renderPassDescriptor.colorAttachments[0].texture
                          WithMesh:nil];
     
+    if (recorder)
+    {
+        [recorder writeFrame:view.currentDrawable.texture OnCommand:commandBuffer];
+    }
     
     [commandBuffer presentDrawable:view.currentDrawable];
+    // That present call is merely telling Metal to schedule a call to present your frame to the screen once the GPU has finished rendering.
+    // 当前调用只是告诉Metal在GPU完成渲染后 调用一下把这这帧 呈现到屏幕上
     [commandBuffer commit];
     
 }
@@ -98,6 +114,23 @@
 -(void) OnDrawableSizeChange:(CGSize)size WithView:(MetalView*) view
 {
     NSLog(@"View Size Change To %f,%f", size.width, size.height);
+    _drawableSize = size ;
+    // TODO
+}
+
+
+-(void) switchRecord
+{
+    if (recorder == nil)
+    {
+        recorder = [[MetalVideoRecorder alloc] init:_drawableSize];
+        [recorder startRecording];
+    }
+    else
+    {
+        [recorder endRecording];
+        recorder = nil;
+    }
 }
 
 @end

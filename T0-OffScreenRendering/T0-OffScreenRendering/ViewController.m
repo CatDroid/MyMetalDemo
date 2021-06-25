@@ -15,6 +15,7 @@
 @interface ViewController ()
 {
     MetalViewDelegateRender* render ;
+
 }
 
 @end
@@ -34,6 +35,13 @@
     view.delegate = render;
     
     NSLog(@"viewDidLoad done "); // ViewContorler:viewDidLoad 返回后才是  View:didMoveToWindow
+}
+
+
+
+- (IBAction)onRecord:(id)sender
+{
+    [render switchRecord];
 }
 
 

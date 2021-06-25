@@ -82,10 +82,12 @@
     
     _sampleCount = 1 ; // 目前没有实现
     
-    
+
     self->_metalLayer = (CAMetalLayer*)self.layer;
     self->_metalLayer.delegate = self ;
     self->_metalLayer.pixelFormat = _colorPixelFormat;
+    self->_metalLayer.framebufferOnly = false ;
+    // 如果是ture的话(默认) 在内部创建纹理的时候 MTLTextureDescriptor.usage 就只有RenderTarget 不能对纹理进行sample/读/写
     
 }
 

@@ -14,6 +14,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 -(nonnull instancetype) initWithMetalView:(nonnull MetalView*) mtkView;
 
+-(void) switchRecord;
+
 @end
 
 NS_ASSUME_NONNULL_END
