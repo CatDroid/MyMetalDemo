@@ -265,7 +265,7 @@
             // if (buffer != nil) { // 数组元素 不能这样判断NULL
             if ((NSNull*)mtkBuffer != [NSNull null]) {
                 // MTKMeshBuffer.MTLBuffer buffer 支持所有顶点和索引数据的 Metal 缓冲区
-                [encoder setVertexBuffer:mtkBuffer.buffer offset:0 atIndex:bufferIndex];
+                [encoder setVertexBuffer:mtkBuffer.buffer offset:mtkBuffer.offset atIndex:bufferIndex];
             }
         }
         
@@ -283,9 +283,9 @@
             // metalKitSubmmesh A MetalKit submesh 包含了图元类型 索引buffer和索引buffer数目
             MTKSubmesh* metalKitSubmesh = submesh.metalKitSubmmesh;
             
-            [encoder drawIndexedPrimitives:metalKitSubmesh.primitiveType
-                                indexCount:metalKitSubmesh.indexCount
-                                 indexType:metalKitSubmesh.indexType // MDLIndexBitDepthUInt32 每个索引使用32bit
+            [encoder drawIndexedPrimitives:metalKitSubmesh.primitiveType // MTLPrimitiveTypeTriangle = 3
+                                indexCount:metalKitSubmesh.indexCount // 21006
+                                 indexType:metalKitSubmesh.indexType // MTLIndexTypeUInt32 = 1  每个索引使用32bit
                                indexBuffer:metalKitSubmesh.indexBuffer.buffer
                          indexBufferOffset:metalKitSubmesh.indexBuffer.offset];
             

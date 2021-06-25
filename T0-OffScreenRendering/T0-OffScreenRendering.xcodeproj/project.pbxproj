@@ -15,8 +15,14 @@
 		B06BCA842682D7F00067BDF5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B06BCA822682D7F00067BDF5 /* LaunchScreen.storyboard */; };
 		B06BCA872682D7F00067BDF5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCA862682D7F00067BDF5 /* main.m */; };
 		B06BCA942682D8B90067BDF5 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCA932682D8B90067BDF5 /* MetalView.m */; };
-		B06BCA9B26831E550067BDF5 /* MyShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B06BCA9A26831E550067BDF5 /* MyShader.metal */; };
+		B06BCA9B26831E550067BDF5 /* ParallelTriangleShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B06BCA9A26831E550067BDF5 /* ParallelTriangleShader.metal */; };
 		B06BCAAA2683216D0067BDF5 /* MetalViewDelegateRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCAA82683216D0067BDF5 /* MetalViewDelegateRender.m */; };
+		B06BCAAF2683767E0067BDF5 /* MetalFrameBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCAAE2683767E0067BDF5 /* MetalFrameBuffer.m */; };
+		B06BCAB2268418D80067BDF5 /* ScreenShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B06BCAB1268418D80067BDF5 /* ScreenShader.metal */; };
+		B06BCAB7268422290067BDF5 /* ScreenRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCAB6268422290067BDF5 /* ScreenRender.m */; };
+		B06BCABC26843B440067BDF5 /* ScreenMesh.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCABB26843B440067BDF5 /* ScreenMesh.m */; };
+		B06BCAE326858F7B0067BDF5 /* ParallelTriangleRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCAE226858F7B0067BDF5 /* ParallelTriangleRender.m */; };
+		B06BCAE7268590C30067BDF5 /* ParallelTriangleMesh.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCAE6268590C30067BDF5 /* ParallelTriangleMesh.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,9 +41,21 @@
 		B06BCA922682D8B90067BDF5 /* MetalView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MetalView.h; sourceTree = "<group>"; };
 		B06BCA932682D8B90067BDF5 /* MetalView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalView.m; sourceTree = "<group>"; wrapsLines = 0; };
 		B06BCA9926831CFB0067BDF5 /* ShaderType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderType.h; sourceTree = "<group>"; };
-		B06BCA9A26831E550067BDF5 /* MyShader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MyShader.metal; sourceTree = "<group>"; };
+		B06BCA9A26831E550067BDF5 /* ParallelTriangleShader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ParallelTriangleShader.metal; sourceTree = "<group>"; };
 		B06BCAA82683216D0067BDF5 /* MetalViewDelegateRender.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MetalViewDelegateRender.m; sourceTree = "<group>"; };
 		B06BCAA92683216D0067BDF5 /* MetalViewDelegateRender.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MetalViewDelegateRender.h; sourceTree = "<group>"; };
+		B06BCAAD2683767E0067BDF5 /* MetalFrameBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MetalFrameBuffer.h; sourceTree = "<group>"; };
+		B06BCAAE2683767E0067BDF5 /* MetalFrameBuffer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalFrameBuffer.m; sourceTree = "<group>"; };
+		B06BCAB1268418D80067BDF5 /* ScreenShader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ScreenShader.metal; sourceTree = "<group>"; };
+		B06BCAB426841AE70067BDF5 /* ScreenShaderType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScreenShaderType.h; sourceTree = "<group>"; };
+		B06BCAB5268422290067BDF5 /* ScreenRender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScreenRender.h; sourceTree = "<group>"; };
+		B06BCAB6268422290067BDF5 /* ScreenRender.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ScreenRender.m; sourceTree = "<group>"; };
+		B06BCABA26843B440067BDF5 /* ScreenMesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScreenMesh.h; sourceTree = "<group>"; };
+		B06BCABB26843B440067BDF5 /* ScreenMesh.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ScreenMesh.m; sourceTree = "<group>"; };
+		B06BCAE126858F7B0067BDF5 /* ParallelTriangleRender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ParallelTriangleRender.h; sourceTree = "<group>"; };
+		B06BCAE226858F7B0067BDF5 /* ParallelTriangleRender.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ParallelTriangleRender.m; sourceTree = "<group>"; };
+		B06BCAE5268590C30067BDF5 /* ParallelTriangleMesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ParallelTriangleMesh.h; sourceTree = "<group>"; };
+		B06BCAE6268590C30067BDF5 /* ParallelTriangleMesh.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ParallelTriangleMesh.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,7 +129,19 @@
 				B06BCAA92683216D0067BDF5 /* MetalViewDelegateRender.h */,
 				B06BCAA82683216D0067BDF5 /* MetalViewDelegateRender.m */,
 				B06BCA9926831CFB0067BDF5 /* ShaderType.h */,
-				B06BCA9A26831E550067BDF5 /* MyShader.metal */,
+				B06BCA9A26831E550067BDF5 /* ParallelTriangleShader.metal */,
+				B06BCAAD2683767E0067BDF5 /* MetalFrameBuffer.h */,
+				B06BCAAE2683767E0067BDF5 /* MetalFrameBuffer.m */,
+				B06BCAB1268418D80067BDF5 /* ScreenShader.metal */,
+				B06BCAB426841AE70067BDF5 /* ScreenShaderType.h */,
+				B06BCAB5268422290067BDF5 /* ScreenRender.h */,
+				B06BCAB6268422290067BDF5 /* ScreenRender.m */,
+				B06BCABA26843B440067BDF5 /* ScreenMesh.h */,
+				B06BCABB26843B440067BDF5 /* ScreenMesh.m */,
+				B06BCAE126858F7B0067BDF5 /* ParallelTriangleRender.h */,
+				B06BCAE226858F7B0067BDF5 /* ParallelTriangleRender.m */,
+				B06BCAE5268590C30067BDF5 /* ParallelTriangleMesh.h */,
+				B06BCAE6268590C30067BDF5 /* ParallelTriangleMesh.m */,
 			);
 			path = MetalRender;
 			sourceTree = "<group>";
@@ -192,12 +222,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B06BCA9B26831E550067BDF5 /* MyShader.metal in Sources */,
+				B06BCA9B26831E550067BDF5 /* ParallelTriangleShader.metal in Sources */,
 				B06BCA7C2682D7EF0067BDF5 /* ViewController.m in Sources */,
 				B06BCA762682D7EF0067BDF5 /* AppDelegate.m in Sources */,
+				B06BCAB7268422290067BDF5 /* ScreenRender.m in Sources */,
 				B06BCA872682D7F00067BDF5 /* main.m in Sources */,
 				B06BCA792682D7EF0067BDF5 /* SceneDelegate.m in Sources */,
+				B06BCAAF2683767E0067BDF5 /* MetalFrameBuffer.m in Sources */,
 				B06BCA942682D8B90067BDF5 /* MetalView.m in Sources */,
+				B06BCAE7268590C30067BDF5 /* ParallelTriangleMesh.m in Sources */,
+				B06BCABC26843B440067BDF5 /* ScreenMesh.m in Sources */,
+				B06BCAB2268418D80067BDF5 /* ScreenShader.metal in Sources */,
+				B06BCAE326858F7B0067BDF5 /* ParallelTriangleRender.m in Sources */,
 				B06BCAAA2683216D0067BDF5 /* MetalViewDelegateRender.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -258,7 +294,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;

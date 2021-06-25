@@ -351,11 +351,11 @@
     // 使用synchronized来确保 对_delegate的通知是原子的??
     @synchronized (_metalLayer) // 为了render和resize的同步
     {
-        if (drawableSize.width == _metalLayer.drawableSize.width &&
-           drawableSize.height == _metalLayer.drawableSize.height)
-        {
-            return;
-        }
+        //if (drawableSize.width == _metalLayer.drawableSize.width &&
+        //   drawableSize.height == _metalLayer.drawableSize.height)
+        //{
+        //    return;
+        //} // viewDidMove 到这里 layer已经有drawableSize 并且相等
         
         // !!  根据view修改CAMetalLayer的drawable尺寸
         _metalLayer.drawableSize = drawableSize;
@@ -377,6 +377,12 @@
         depthTargetDescriptor.width       = drawableSize.width;
         depthTargetDescriptor.height      = drawableSize.height;
         depthTargetDescriptor.pixelFormat = _depthStencilPixelFormat;
+        depthTargetDescriptor.textureType = MTLTextureType2D ;
+        /*
+         CPU 和 GPU 之间的资源一致性(Resource coherency)不是必需的
+         因为 CPU 无法访问资源(resource)的内容
+         Metal可能会优化 私有资源(private resource) 私有资源是不能share和管理的资源(shared or managed resources.)
+         */
         depthTargetDescriptor.storageMode = MTLStorageModePrivate;
         depthTargetDescriptor.usage       = MTLTextureUsageRenderTarget;
 
