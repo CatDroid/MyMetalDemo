@@ -154,7 +154,7 @@
     NSLog(@" sizeof(MyVertex) = %lu", sizeof(MyVertex)); // 48
     
     // 上面定义读取到cpu和gpu数据的格式
-    // 下面定义要读取的内容 
+    // 下面定义要读取的内容
     
     // MDLVertexDescriptor 定义在 Model I/O Framework 用来描述从模型文件中读取什么数据
     
@@ -179,7 +179,49 @@
                                    error:&errorOfModel];
     NSAssert(_meshes, @"Could not load model with %@", error);
  
+    [self _testNSNull];
     return vertexDesc;
+
+}
+
+
+-(void) _testNSNull
+{
+//    NSArray* array = @[
+//        [[NSObject alloc] init],
+//        [NSNull null],
+//        @"StringElemnt",
+//        nil, // 用 @[]指令的方式 会出现 Collection element of type 'void *' is not an Objective-C object
+//        [[NSObject alloc] init],
+//        [[NSObject alloc] init],
+//        nil
+//    ];
+        
+   
+    NSArray* array = [NSArray arrayWithObjects:
+                      [[NSObject alloc] init],
+                      [NSNull null], // 这个并非结束
+                      @"StringElemnt",
+                      nil, // 以这个为结束
+                      [[NSObject alloc] init],
+                      [[NSObject alloc] init],
+                      nil];
+    NSLog(@"[NSNull null] 的作用 %lu", array.count); // 只有3个
+    
+    int i = 0 ;
+    for (__unsafe_unretained id obj in array)
+    {
+        NSLog(@"带有[NSNull null]数组元素的数组 %d is %@", i , obj); // 1 is <null>
+        i++;
+    } // for in 不会剔除 NSNull null对象
+ 
+
+//    NSMutableDictionary *mutableDictionary = [[NSMutableDictionary alloc] init];
+//    [mutableDictionary setObject:nil forKey:@"Key-nil"]; // 会引起Crash  warning: Null passed to a callee that requires a non-null argument
+//    [mutableDictionary setObject:[NSNull null] forKey:@"Key-nil"]; // 不会引起Crash
+//    //所以在使用时，如下方法是比较安全的
+//    [mutableDictionary setObject:(nil == value ? [NSNull null] : value)forKey:@"Key"];
+    
 }
 
 // drawMeshes函数中，我们遍历mesh数组数据，依次将
@@ -203,7 +245,7 @@
     for (__unsafe_unretained AAPLMesh* mesh in _meshes)
     {
         __unsafe_unretained MTKMesh* mtkMesh = mesh.metalKitMesh; // 包含顶点buffer
-        NSLog(@"%@ has vertex count %lu buffer %lu", mtkMesh, mtkMesh.vertexCount,  mtkMesh.vertexBuffers.count);
+        //NSLog(@"%@ has vertex count %lu buffer %lu", mtkMesh, mtkMesh.vertexCount,  mtkMesh.vertexBuffers.count);
         // vertexCount 21527 buffer 1
     
         // 设置顶点buffer(mesh中可能有多个)
@@ -223,7 +265,7 @@
             // if (buffer != nil) { // 数组元素 不能这样判断NULL
             if ((NSNull*)mtkBuffer != [NSNull null]) {
                 // MTKMeshBuffer.MTLBuffer buffer 支持所有顶点和索引数据的 Metal 缓冲区
-                [encoder setVertexBuffer:mtkBuffer.buffer offset:0 atIndex:bufferIndex];
+                [encoder setVertexBuffer:mtkBuffer.buffer offset:mtkBuffer.offset atIndex:bufferIndex];
             }
         }
         
@@ -241,9 +283,9 @@
             // metalKitSubmmesh A MetalKit submesh 包含了图元类型 索引buffer和索引buffer数目
             MTKSubmesh* metalKitSubmesh = submesh.metalKitSubmmesh;
             
-            [encoder drawIndexedPrimitives:metalKitSubmesh.primitiveType
-                                indexCount:metalKitSubmesh.indexCount
-                                 indexType:metalKitSubmesh.indexType // MDLIndexBitDepthUInt32 每个索引使用32bit
+            [encoder drawIndexedPrimitives:metalKitSubmesh.primitiveType // MTLPrimitiveTypeTriangle = 3
+                                indexCount:metalKitSubmesh.indexCount // 21006
+                                 indexType:metalKitSubmesh.indexType // MTLIndexTypeUInt32 = 1  每个索引使用32bit
                                indexBuffer:metalKitSubmesh.indexBuffer.buffer
                          indexBufferOffset:metalKitSubmesh.indexBuffer.offset];
             
@@ -252,36 +294,7 @@
       
     }
  
-    
-//    NSArray* array = @[
-//        [[NSObject alloc] init],
-//        [NSNull null],
-//        @"StringElemnt",
-//        nil, // 用 @[]指令的方式 会出现 Collection element of type 'void *' is not an Objective-C object
-//        [[NSObject alloc] init],
-//        [[NSObject alloc] init],
-//        nil
-//    ];
-    
-    if (false)
-    {
-        NSArray* array = [NSArray arrayWithObjects:
-                          [[NSObject alloc] init],
-                          [NSNull null], // 这个并非结束
-                          @"StringElemnt",
-                          nil, // 以这个为结束
-                          [[NSObject alloc] init],
-                          [[NSObject alloc] init],
-                          nil];
-        NSLog(@"[NSNull null] 的作用 %lu", array.count); // 只有3个
-    }
 
-    
-//    NSMutableDictionary *mutableDictionary = [[NSMutableDictionary alloc] init];
-//    [mutableDictionary setObject:nil forKey:@"Key-nil"]; // 会引起Crash  warning: Null passed to a callee that requires a non-null argument
-//    [mutableDictionary setObject:[NSNull null] forKey:@"Key-nil"]; // 不会引起Crash
-//    //所以在使用时，如下方法是比较安全的
-//    [mutableDictionary setObject:(nil == value ? [NSNull null] : value)forKey:@"Key"];
 }
 
 #pragma mark - MTKView delegate
@@ -301,10 +314,22 @@
     
     [encoder pushDebugGroup:@"RenderPass"];
     
+    // 面剔除(Face culling)
+    
+    // 指定图元的正面绘制时顺时针方向处理 (MTLWindingClockwise) 还是逆时针方向处理 (MTLWindingCounterClockwise) ，
+    // 默认值是 MTLWindingClockwise  !! 顺时针
+    
+    // OpenGL允许检查所有正面朝向（Front facing）观察者的面，并渲染它们，而丢弃所有背面朝向（Back facing）的面
+    // 默认情况下，逆时针的顶点连接顺序被定义为三角形的正面
+    
     [encoder setCullMode:MTLCullModeBack]; // 背面图元裁剪 Culls back-facing primitives.
+    //[encoder setFrontFacingWinding:MTLWindingClockwise];
+    [encoder setFrontFacingWinding:MTLWindingCounterClockwise];
     
     [encoder setRenderPipelineState:_renderPipelineState];
     [encoder setDepthStencilState:_depthStencilState];
+    
+    // texture和buffer等ArgumentTable 以及draw图元 改成用AAPLMesh中的
     
     //[encoder setFragmentTexture:_texture atIndex:0];
     //[encoder setVertexBuffer:_vertexBuffer offset:0 atIndex:0];

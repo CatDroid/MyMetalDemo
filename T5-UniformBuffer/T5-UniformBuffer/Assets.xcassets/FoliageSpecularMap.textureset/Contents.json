@@ -1,0 +1,20 @@
+{
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "textures" : [
+    {
+      "filename" : "iPad.mipmapset",
+      "idiom" : "ipad"
+    },
+    {
+      "filename" : "Mac.mipmapset",
+      "idiom" : "mac"
+    },
+    {
+      "filename" : "Universal.mipmapset",
+      "idiom" : "universal"
+    }
+  ]
+}
