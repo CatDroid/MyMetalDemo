@@ -99,6 +99,9 @@
         rCE1.label = @"rCE1";
         [rCE1 pushDebugGroup:@"rCE1Dbg"];
         
+        // Metal API Validation Enabled
+        // Product -- Scheme -- Edit Scheme -- Run --- Diagnositics --- Metal API Validation 还有 Metal Shader Validation
+        
         // failed assertion `Framebuffer With Render Pipeline State Validation
         // For color attachment 0, the render pipeline's pixelFormat (MTLPixelFormatBGRA8Unorm_sRGB) does not match the framebuffer's pixelFormat (MTLPixelFormatBGRA8Unorm).
         // For depth attachment, the renderPipelineState pixelFormat must be MTLPixelFormatInvalid, as no texture is set.
