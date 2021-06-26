@@ -17,6 +17,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 -(instancetype) initWithDevice:(id<MTLDevice>)gpu WithSize:(CGSize)size  NS_DESIGNATED_INITIALIZER ; // 指定构造函数
 
+-(void) firstDrawOnEncoder ;
+
+-(void) keepDrawOnAnotherEncoder ;
+
+-(void) lastDrawEncoder ;
+
 @property (strong, nonnull, nonatomic, readonly) MTLRenderPassDescriptor* renderPassDescriptor;
 
 @end

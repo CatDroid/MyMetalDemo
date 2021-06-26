@@ -14,14 +14,19 @@
 
 #import "ParallelTriangleRender.h"
 #import "ScreenRender.h"
+#import "QuadRender.h"
+
 #import "MetalVideoRecorder.h"
+
 
 @implementation MetalViewDelegateRender
 {
     id <MTLCommandQueue> _commandQueue ;
     
+ 
     MetalFrameBuffer* _offscreenFramebuffer ;
     
+    QuadRender* _quadRender ;
     ScreenRender* _onscreenRender ;
     ParallelTriangleRender* _triangleRender ;
     
@@ -65,10 +70,15 @@
 
 -(void) _setupRender:(id<MTLDevice>) gpu WithView:(MetalView*)view
 {
-    _onscreenRender = [[ScreenRender alloc] initWithDevice:gpu WithView:view];
-    _triangleRender = [[ParallelTriangleRender alloc] initWithDevice:gpu];
-    _offscreenFramebuffer = [[MetalFrameBuffer alloc] initWithDevice:gpu WithSize:view.metalLayer.drawableSize];
+    CGSize drawableSize = view.metalLayer.drawableSize;
     
+    _onscreenRender = [[ScreenRender alloc] initWithDevice:gpu WithView:view];
+    
+    _triangleRender = [[ParallelTriangleRender alloc] initWithDevice:gpu];
+    _offscreenFramebuffer = [[MetalFrameBuffer alloc] initWithDevice:gpu WithSize:drawableSize];
+    
+    _quadRender = [[QuadRender alloc] initWithDevice:gpu WithSize:drawableSize];
+   
     //recorder = [[MetalVideoRecorder alloc] init:_drawableSize];
     //[recorder startRecording];
 }
@@ -78,19 +88,33 @@
 -(void) OnDrawFrame:(CAMetalLayer*) layer WithView:(MetalView*) view
 {
          
-    MTLRenderPassDescriptor* framebuffer = view.currentRenderPassDescriptor;
     
+    
+    // 整个渲染只有一个commandbuffer, 但是有多个encoder：一个并行encoder(可以有两个子encoder单独编码) 一个普通 encoder(可以有多个draw)
     id<MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
     commandBuffer.label = @"OnDrawFrame";
     
-    // 整个渲染只有一个commandbuffer, 但是有多个encoder：一个并行encoder(可以有两个子encoder单独编码) 一个普通 encoder(可以有多个draw)
-
+    
+    [_offscreenFramebuffer firstDrawOnEncoder];
+  
+    [_quadRender renderOnFrameBuffer:_offscreenFramebuffer
+                     OnCommandBuffer:commandBuffer
+                    WithInputTexture:nil
+                            WithMesh:nil ];
+    
+    // 两个encoder都会重新加载framebuffer 并调用clear, 并且由于上一个深度buffer没有store 会导致不会影响后面这个encoder
+    // 这里比较难看 就是重写了内部的LoadAction
+    // 如果这里不重新load 颜色/深度/模板 附件。那么会出现严重的锯齿
+    [_offscreenFramebuffer lastDrawEncoder];
+    
     [_triangleRender renderOnFrameBuffer:_offscreenFramebuffer
                          OnCommandBuffer:commandBuffer
                         WithInputTexture:nil
                                 WithMesh:nil ];
     
    
+    // 上屏
+    MTLRenderPassDescriptor* framebuffer = view.currentRenderPassDescriptor;
     [_onscreenRender renderOnPass:framebuffer
                   OnCommandBuffer:commandBuffer
                  WithInputTexture:_offscreenFramebuffer.renderPassDescriptor.colorAttachments[0].texture

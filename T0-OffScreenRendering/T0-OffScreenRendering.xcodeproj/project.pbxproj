@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B05EC8E6268725F600293499 /* QuadMesh.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC8E5268725F600293499 /* QuadMesh.m */; };
+		B05EC8EB2687297E00293499 /* ColorQuad.metal in Sources */ = {isa = PBXBuildFile; fileRef = B05EC8EA2687297E00293499 /* ColorQuad.metal */; };
+		B05EC8EF26872D3C00293499 /* QuadRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC8EE26872D3C00293499 /* QuadRender.m */; };
 		B06BCA762682D7EF0067BDF5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCA752682D7EF0067BDF5 /* AppDelegate.m */; };
 		B06BCA792682D7EF0067BDF5 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCA782682D7EF0067BDF5 /* SceneDelegate.m */; };
 		B06BCA7C2682D7EF0067BDF5 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCA7B2682D7EF0067BDF5 /* ViewController.m */; };
@@ -27,6 +30,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B05EC8E4268725F600293499 /* QuadMesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QuadMesh.h; sourceTree = "<group>"; };
+		B05EC8E5268725F600293499 /* QuadMesh.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QuadMesh.m; sourceTree = "<group>"; };
+		B05EC8E82687269800293499 /* QuadShaderType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QuadShaderType.h; sourceTree = "<group>"; };
+		B05EC8EA2687297E00293499 /* ColorQuad.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ColorQuad.metal; sourceTree = "<group>"; };
+		B05EC8ED26872D3C00293499 /* QuadRender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QuadRender.h; sourceTree = "<group>"; };
+		B05EC8EE26872D3C00293499 /* QuadRender.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QuadRender.m; sourceTree = "<group>"; };
 		B06BCA712682D7EF0067BDF5 /* T0-OffScreenRendering.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "T0-OffScreenRendering.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B06BCA742682D7EF0067BDF5 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		B06BCA752682D7EF0067BDF5 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -72,6 +81,45 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B05EC8E02687253600293499 /* Screen */ = {
+			isa = PBXGroup;
+			children = (
+				B06BCAB1268418D80067BDF5 /* ScreenShader.metal */,
+				B06BCAB426841AE70067BDF5 /* ScreenShaderType.h */,
+				B06BCAB5268422290067BDF5 /* ScreenRender.h */,
+				B06BCAB6268422290067BDF5 /* ScreenRender.m */,
+				B06BCABA26843B440067BDF5 /* ScreenMesh.h */,
+				B06BCABB26843B440067BDF5 /* ScreenMesh.m */,
+			);
+			path = Screen;
+			sourceTree = "<group>";
+		};
+		B05EC8E12687255700293499 /* ParallelTriangle */ = {
+			isa = PBXGroup;
+			children = (
+				B06BCAE126858F7B0067BDF5 /* ParallelTriangleRender.h */,
+				B06BCAE226858F7B0067BDF5 /* ParallelTriangleRender.m */,
+				B06BCAE5268590C30067BDF5 /* ParallelTriangleMesh.h */,
+				B06BCAE6268590C30067BDF5 /* ParallelTriangleMesh.m */,
+				B06BCA9926831CFB0067BDF5 /* ShaderType.h */,
+				B06BCA9A26831E550067BDF5 /* ParallelTriangleShader.metal */,
+			);
+			path = ParallelTriangle;
+			sourceTree = "<group>";
+		};
+		B05EC8E3268725AC00293499 /* Quad */ = {
+			isa = PBXGroup;
+			children = (
+				B05EC8E4268725F600293499 /* QuadMesh.h */,
+				B05EC8E5268725F600293499 /* QuadMesh.m */,
+				B05EC8E82687269800293499 /* QuadShaderType.h */,
+				B05EC8EA2687297E00293499 /* ColorQuad.metal */,
+				B05EC8ED26872D3C00293499 /* QuadRender.h */,
+				B05EC8EE26872D3C00293499 /* QuadRender.m */,
+			);
+			path = Quad;
+			sourceTree = "<group>";
+		};
 		B06BCA682682D7EF0067BDF5 = {
 			isa = PBXGroup;
 			children = (
@@ -130,22 +178,13 @@
 		B06BCA9726831BDF0067BDF5 /* MetalRender */ = {
 			isa = PBXGroup;
 			children = (
+				B05EC8E3268725AC00293499 /* Quad */,
+				B05EC8E12687255700293499 /* ParallelTriangle */,
+				B05EC8E02687253600293499 /* Screen */,
 				B06BCAA92683216D0067BDF5 /* MetalViewDelegateRender.h */,
 				B06BCAA82683216D0067BDF5 /* MetalViewDelegateRender.m */,
-				B06BCA9926831CFB0067BDF5 /* ShaderType.h */,
-				B06BCA9A26831E550067BDF5 /* ParallelTriangleShader.metal */,
 				B06BCAAD2683767E0067BDF5 /* MetalFrameBuffer.h */,
 				B06BCAAE2683767E0067BDF5 /* MetalFrameBuffer.m */,
-				B06BCAB1268418D80067BDF5 /* ScreenShader.metal */,
-				B06BCAB426841AE70067BDF5 /* ScreenShaderType.h */,
-				B06BCAB5268422290067BDF5 /* ScreenRender.h */,
-				B06BCAB6268422290067BDF5 /* ScreenRender.m */,
-				B06BCABA26843B440067BDF5 /* ScreenMesh.h */,
-				B06BCABB26843B440067BDF5 /* ScreenMesh.m */,
-				B06BCAE126858F7B0067BDF5 /* ParallelTriangleRender.h */,
-				B06BCAE226858F7B0067BDF5 /* ParallelTriangleRender.m */,
-				B06BCAE5268590C30067BDF5 /* ParallelTriangleMesh.h */,
-				B06BCAE6268590C30067BDF5 /* ParallelTriangleMesh.m */,
 			);
 			path = MetalRender;
 			sourceTree = "<group>";
@@ -237,13 +276,16 @@
 			files = (
 				B06BCA9B26831E550067BDF5 /* ParallelTriangleShader.metal in Sources */,
 				B06BCA7C2682D7EF0067BDF5 /* ViewController.m in Sources */,
+				B05EC8E6268725F600293499 /* QuadMesh.m in Sources */,
 				B06BCA762682D7EF0067BDF5 /* AppDelegate.m in Sources */,
 				B06BCAB7268422290067BDF5 /* ScreenRender.m in Sources */,
+				B05EC8EF26872D3C00293499 /* QuadRender.m in Sources */,
 				B06BCA872682D7F00067BDF5 /* main.m in Sources */,
 				B06BCA792682D7EF0067BDF5 /* SceneDelegate.m in Sources */,
 				B06BCAAF2683767E0067BDF5 /* MetalFrameBuffer.m in Sources */,
 				B06BCA942682D8B90067BDF5 /* MetalView.m in Sources */,
 				B06BCAE7268590C30067BDF5 /* ParallelTriangleMesh.m in Sources */,
+				B05EC8EB2687297E00293499 /* ColorQuad.metal in Sources */,
 				B06BCABC26843B440067BDF5 /* ScreenMesh.m in Sources */,
 				B06BCAB2268418D80067BDF5 /* ScreenShader.metal in Sources */,
 				B06BCAF02685E2780067BDF5 /* MetalVideoRecorder.m in Sources */,

@@ -34,7 +34,8 @@
          MTLTextureUsageShaderWrite 纹理可读可写 access::read_write attribute. 在shader中会调用write()
          MTLTextureUsageRenderTarget 纹理作为render pass中的颜色 深度 模板等目标
          */
-        textureDescriptor.usage = MTLTextureUsageShaderRead|MTLTextureUsageShaderWrite|MTLTextureUsageRenderTarget;
+        // textureDescriptor.usage = MTLTextureUsageShaderRead|MTLTextureUsageShaderWrite|MTLTextureUsageRenderTarget;
+        textureDescriptor.usage = MTLTextureUsageShaderRead|MTLTextureUsageRenderTarget;
         id<MTLTexture> colorTexture = [gpu newTextureWithDescriptor:textureDescriptor];
         
         
@@ -64,5 +65,37 @@
     
 }
 
+// 如果这个framebuffer 需要在多个encoder上 作为target的话， 那么第一个encoder应该要设置framebuffer clear
+-(void) firstDrawOnEncoder
+{
+    _renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+    _renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionClear;
+    _renderPassDescriptor.stencilAttachment.loadAction = MTLLoadActionClear;
+    
+    _renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
+    _renderPassDescriptor.stencilAttachment.storeAction = MTLStoreActionStore;
+}
+
+// 如果这个framebuffer 需要在多个encoder上 作为target的话，那么之前的颜色深度模板 都应该store
+-(void) keepDrawOnAnotherEncoder
+{
+    _renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionLoad;
+    _renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionLoad;
+    _renderPassDescriptor.stencilAttachment.loadAction = MTLLoadActionLoad;
+    
+    _renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore; // 默认颜色都是store的
+    _renderPassDescriptor.stencilAttachment.storeAction = MTLStoreActionStore;
+}
+
+// 如果这个framebuffer 需要在多个encoder上 作为target的话，最后一个encoder的深度和模板可以不用store
+-(void) lastDrawEncoder
+{
+    _renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionLoad;
+    _renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionLoad;
+    _renderPassDescriptor.stencilAttachment.loadAction = MTLLoadActionLoad;
+    
+    _renderPassDescriptor.depthAttachment.storeAction = MTLLoadActionDontCare;
+    _renderPassDescriptor.stencilAttachment.storeAction = MTLLoadActionDontCare;
+}
 
 @end
