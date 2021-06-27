@@ -7,7 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
-#import <UIKit/UIKit.h> // CGSize
+#import <CoreGraphics/CoreGraphics.h> // CGSize
 
 NS_ASSUME_NONNULL_BEGIN
 
