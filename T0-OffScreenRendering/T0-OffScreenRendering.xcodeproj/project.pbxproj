@@ -10,6 +10,7 @@
 		B05EC8E6268725F600293499 /* QuadMesh.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC8E5268725F600293499 /* QuadMesh.m */; };
 		B05EC8EB2687297E00293499 /* ColorQuad.metal in Sources */ = {isa = PBXBuildFile; fileRef = B05EC8EA2687297E00293499 /* ColorQuad.metal */; };
 		B05EC8EF26872D3C00293499 /* QuadRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC8EE26872D3C00293499 /* QuadRender.m */; };
+		B05EC8F32688453200293499 /* BackedCVPixelBufferMetalRecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC8F22688453200293499 /* BackedCVPixelBufferMetalRecoder.m */; };
 		B06BCA762682D7EF0067BDF5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCA752682D7EF0067BDF5 /* AppDelegate.m */; };
 		B06BCA792682D7EF0067BDF5 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCA782682D7EF0067BDF5 /* SceneDelegate.m */; };
 		B06BCA7C2682D7EF0067BDF5 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B06BCA7B2682D7EF0067BDF5 /* ViewController.m */; };
@@ -36,6 +37,8 @@
 		B05EC8EA2687297E00293499 /* ColorQuad.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ColorQuad.metal; sourceTree = "<group>"; };
 		B05EC8ED26872D3C00293499 /* QuadRender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QuadRender.h; sourceTree = "<group>"; };
 		B05EC8EE26872D3C00293499 /* QuadRender.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QuadRender.m; sourceTree = "<group>"; };
+		B05EC8F12688453200293499 /* BackedCVPixelBufferMetalRecoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BackedCVPixelBufferMetalRecoder.h; sourceTree = "<group>"; };
+		B05EC8F22688453200293499 /* BackedCVPixelBufferMetalRecoder.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BackedCVPixelBufferMetalRecoder.m; sourceTree = "<group>"; };
 		B06BCA712682D7EF0067BDF5 /* T0-OffScreenRendering.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "T0-OffScreenRendering.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B06BCA742682D7EF0067BDF5 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		B06BCA752682D7EF0067BDF5 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -201,6 +204,8 @@
 			children = (
 				B06BCAEE2685E2780067BDF5 /* MetalVideoRecorder.h */,
 				B06BCAEF2685E2780067BDF5 /* MetalVideoRecorder.m */,
+				B05EC8F12688453200293499 /* BackedCVPixelBufferMetalRecoder.h */,
+				B05EC8F22688453200293499 /* BackedCVPixelBufferMetalRecoder.m */,
 			);
 			path = MetalRecorder;
 			sourceTree = "<group>";
@@ -276,6 +281,7 @@
 			files = (
 				B06BCA9B26831E550067BDF5 /* ParallelTriangleShader.metal in Sources */,
 				B06BCA7C2682D7EF0067BDF5 /* ViewController.m in Sources */,
+				B05EC8F32688453200293499 /* BackedCVPixelBufferMetalRecoder.m in Sources */,
 				B05EC8E6268725F600293499 /* QuadMesh.m in Sources */,
 				B06BCA762682D7EF0067BDF5 /* AppDelegate.m in Sources */,
 				B06BCAB7268422290067BDF5 /* ScreenRender.m in Sources */,
