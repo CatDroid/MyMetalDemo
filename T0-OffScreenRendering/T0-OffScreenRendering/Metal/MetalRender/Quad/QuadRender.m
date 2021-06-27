@@ -8,6 +8,9 @@
 #import "QuadRender.h"
 #import "QuadShaderType.h"
 
+// 测试同一个command buffer 前后在不同的线程上操作
+//#define TEST_COMMAND_BUFFER_ON_ANOTHER_THREAD  1
+
 @implementation QuadRender
 {
     id<MTLRenderPipelineState> _pipelineState;
@@ -16,6 +19,9 @@
     id<MTLBuffer> _viewPortScalerUniformBuffer;
     int32_t _frameNumber ;
     
+#if TEST_COMMAND_BUFFER_ON_ANOTHER_THREAD
+    dispatch_queue_t serialQueue ;
+#endif
 }
 
 -(instancetype) initWithDevice:(id<MTLDevice>) gpu WithSize:(CGSize)size
@@ -23,7 +29,14 @@
     self = [super init];
     if (self)
     {
-        // 如果不是同一个gpu 是否会有问题 ???
+        // MTLCreateSystemDefaultDevice 目前返回的都是同一个MTLDevice对象
+        // 在MacOS 为了使用默认的Metal对象，必须显式链接 CoreGraphics framework，特别是是命令行程序
+        id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+        NSLog(@"Different GPU ? gpu = %p; device = %p", gpu, device);
+        if (gpu == device)
+        {
+            NSLog(@"MTLCreateSystemDefaultDevice get the same MTLDevice");
+        }
         
         id<MTLLibrary> shaderLib = [gpu newDefaultLibrary];
         if(!shaderLib)
@@ -95,6 +108,10 @@
         unformBuffer->scaler = 1.0;
         unformBuffer->viewport = (vector_float2){1.0, size.width/size.height};
         
+#if TEST_COMMAND_BUFFER_ON_ANOTHER_THREAD
+        // 没有使用来测试
+        serialQueue = dispatch_queue_create("serial", DISPATCH_QUEUE_SERIAL);
+#endif
     }
     return self ;
 }
@@ -121,8 +138,41 @@
     ViewPortScaler* unformBuffer = (ViewPortScaler*)_viewPortScalerUniformBuffer.contents;
     unformBuffer->scaler =  1.0 + 0.5 * sin(_frameNumber * 0.1);
     
+
+    // 一个command buffer同一时刻只能有一个线程上操作
+    // 不能多个线程同时访问同一个command buffer
+    //
+    // 但可以在command queue 上创建多个command buffer 并分配到多个线程上 执行指令编码
+    //
+    // 每个command buffer通过enqueue(插队)和commit(提交)
+    // commit提交，如果外部没有显式enqueue, 内部默认有enqueue到当前queue最后一个commandbuffer后
+    // [buffer enqueue];
+    
+ 
+#if TEST_COMMAND_BUFFER_ON_ANOTHER_THREAD
+    
+    //NSRunLoop *rl = [NSRunLoop currentRunLoop];
+    //rl performBlock:^{
+    //
+    //};
+    
+    //dispatch_queue_global_t backgroundQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0);
+    //dispatch_sync(backgroundQueue, ^{ // 可能是同一个线程
+    //dispatch_sync(serialQueue , ^{ // 可能是同一个线程
+    dispatch_sync(dispatch_get_main_queue(), ^{ // 抛给主线程 操作这个encoder 并等待返回 目前测试不会出现问题(因为不会同时有两个encoder在编码)
+#endif
+    
+    
     id<MTLRenderCommandEncoder> encoder = [buffer renderCommandEncoderWithDescriptor:renderPass];
     encoder.label = @"QuadRender";
+    
+    // 当一个 command encoder 处于激活状态，它有给它的 command buffer 附加指令的专有权
+    // 一个commandbuffer在创建出一个encoder后
+    // ，并在这个encoder endcoding之前
+    // ，占用这个commandbuffer
+    // ，不能再创建encoder
+    // failed assertion `encoding in progress'
+    // id<MTLRenderCommandEncoder> encoder2 = [buffer renderCommandEncoderWithDescriptor:renderPass];
     
     // encoder setViewport:(MTLViewport)
     // encoder setViewports:(const MTLViewport * _Nonnull) count:(NSUInteger)  // 多个viewpoints ??
@@ -152,6 +202,10 @@
     [encoder drawPrimitives:_mesh.primitiveType vertexStart:0 vertexCount:_mesh.vertexCount];
     
     [encoder endEncoding];
+  
+#if TEST_COMMAND_BUFFER_ON_ANOTHER_THREAD
+    });
+#endif
     
     return true ;
 }

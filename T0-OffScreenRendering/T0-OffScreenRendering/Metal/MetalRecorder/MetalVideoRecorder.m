@@ -126,6 +126,8 @@
         {
             [StrongSelf writeFrame:texture];
         }
+        // MTLCommandBufferStatusCompleted = 4
+        // NSLog(@"MTLCommandBuffer status = %lu", [buffer status] );
     }];
     
 }

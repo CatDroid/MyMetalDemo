@@ -125,10 +125,25 @@
         [recorder writeFrame:view.currentDrawable.texture OnCommand:commandBuffer];
     }
     
+    // NSLog(@"MTLCommandBuffer status %lu", [commandBuffer status]); // MTLCommandBufferStatusNotEnqueued 0
+
+    
     [commandBuffer presentDrawable:view.currentDrawable];
     // That present call is merely telling Metal to schedule a call to present your frame to the screen once the GPU has finished rendering.
     // 当前调用只是告诉Metal在GPU完成渲染后 调用一下把这这帧 呈现到屏幕上
+    // presentDrawable 其实是一个内置注册的回调 addCompleteHandler
+    // 当command buffer执行完毕后准备好呈现一个CAMetalDrawable对象 呈现到屏幕上
     [commandBuffer commit];
+    
+    // NSLog(@"MTLCommandBuffer status %lu", [commandBuffer status]); // MTLCommandBufferStatusCommitted  2
+    // 如果单独调试 这里就可能遇到是 MTLCommandBufferStatusScheduled = 3
+    
+    // GPU和CPU同步
+    //      在 MTLCommandBuffer 对象被提交之后 (这时，MTLCommandBuffer 对象的 status 属性值为 MTLCommandBufferStatusCommitted)，
+    //      MTLDevice 对象就观察不到由 CPU 引起的这些资源的变化情况。
+    //
+    //      当 MTLDevice 对象执行完一个 MTLCommandBuffer 对象后(这时 MTLCommandBuffer 对象的 status 属性值为 MTLCommandBufferStatusCompleted)
+    //      CPU 只保证能观察到由 MTLDevice 对象引起的 command buffer 相关的那些资源文件存储上的变化
     
 }
 
