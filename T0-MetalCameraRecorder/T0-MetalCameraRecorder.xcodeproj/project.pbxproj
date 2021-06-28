@@ -1,0 +1,457 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B05EC9032688513100293499 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC9022688513100293499 /* AppDelegate.m */; };
+		B05EC9062688513100293499 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC9052688513100293499 /* SceneDelegate.m */; };
+		B05EC9092688513100293499 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC9082688513100293499 /* ViewController.m */; };
+		B05EC90C2688513100293499 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B05EC90A2688513100293499 /* Main.storyboard */; };
+		B05EC90E2688513100293499 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B05EC90D2688513100293499 /* Assets.xcassets */; };
+		B05EC9112688513100293499 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B05EC90F2688513100293499 /* LaunchScreen.storyboard */; };
+		B05EC9142688513100293499 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC9132688513100293499 /* main.m */; };
+		B05EC91E268851C500293499 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC91D268851C500293499 /* MetalView.m */; };
+		B05EC9252688529F00293499 /* MetalFrameBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC9232688529F00293499 /* MetalFrameBuffer.m */; };
+		B05EC9262688529F00293499 /* MetalViewDelegateRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC9242688529F00293499 /* MetalViewDelegateRender.m */; };
+		B05EC92C2688588F00293499 /* BackedCVPixelBufferMetalRecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC92B2688588F00293499 /* BackedCVPixelBufferMetalRecoder.m */; };
+		B05EC935268858F000293499 /* ScreenShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B05EC92F268858F000293499 /* ScreenShader.metal */; };
+		B05EC936268858F000293499 /* ScreenMesh.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC931268858F000293499 /* ScreenMesh.m */; };
+		B05EC937268858F000293499 /* ScreenRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC934268858F000293499 /* ScreenRender.m */; };
+		B0EABC9A268995AA00F6C5E0 /* CameraRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B0EABC99268995AA00F6C5E0 /* CameraRender.m */; };
+		B0EABC9F26899DE300F6C5E0 /* MetalCameraDevice.m in Sources */ = {isa = PBXBuildFile; fileRef = B0EABC9E26899DE300F6C5E0 /* MetalCameraDevice.m */; };
+		B0EABCA32689C64B00F6C5E0 /* CameraShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B0EABCA22689C64B00F6C5E0 /* CameraShader.metal */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B05EC8FE2688513100293499 /* T0-MetalCameraRecorder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "T0-MetalCameraRecorder.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B05EC9012688513100293499 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		B05EC9022688513100293499 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		B05EC9042688513100293499 /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
+		B05EC9052688513100293499 /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
+		B05EC9072688513100293499 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		B05EC9082688513100293499 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		B05EC90B2688513100293499 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		B05EC90D2688513100293499 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B05EC9102688513100293499 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		B05EC9122688513100293499 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B05EC9132688513100293499 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		B05EC91C268851C500293499 /* MetalView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MetalView.h; sourceTree = "<group>"; };
+		B05EC91D268851C500293499 /* MetalView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MetalView.m; sourceTree = "<group>"; };
+		B05EC9212688529F00293499 /* MetalFrameBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MetalFrameBuffer.h; sourceTree = "<group>"; };
+		B05EC9222688529F00293499 /* MetalViewDelegateRender.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MetalViewDelegateRender.h; sourceTree = "<group>"; };
+		B05EC9232688529F00293499 /* MetalFrameBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MetalFrameBuffer.m; sourceTree = "<group>"; };
+		B05EC9242688529F00293499 /* MetalViewDelegateRender.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MetalViewDelegateRender.m; sourceTree = "<group>"; };
+		B05EC92A2688588F00293499 /* BackedCVPixelBufferMetalRecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BackedCVPixelBufferMetalRecoder.h; sourceTree = "<group>"; };
+		B05EC92B2688588F00293499 /* BackedCVPixelBufferMetalRecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BackedCVPixelBufferMetalRecoder.m; sourceTree = "<group>"; };
+		B05EC92F268858F000293499 /* ScreenShader.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = ScreenShader.metal; sourceTree = "<group>"; };
+		B05EC930268858F000293499 /* ScreenShaderType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScreenShaderType.h; sourceTree = "<group>"; };
+		B05EC931268858F000293499 /* ScreenMesh.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScreenMesh.m; sourceTree = "<group>"; };
+		B05EC932268858F000293499 /* ScreenRender.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScreenRender.h; sourceTree = "<group>"; };
+		B05EC933268858F000293499 /* ScreenMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScreenMesh.h; sourceTree = "<group>"; };
+		B05EC934268858F000293499 /* ScreenRender.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScreenRender.m; sourceTree = "<group>"; };
+		B0EABC98268995AA00F6C5E0 /* CameraRender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CameraRender.h; sourceTree = "<group>"; };
+		B0EABC99268995AA00F6C5E0 /* CameraRender.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CameraRender.m; sourceTree = "<group>"; };
+		B0EABC9D26899DE300F6C5E0 /* MetalCameraDevice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MetalCameraDevice.h; sourceTree = "<group>"; };
+		B0EABC9E26899DE300F6C5E0 /* MetalCameraDevice.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalCameraDevice.m; sourceTree = "<group>"; };
+		B0EABCA22689C64B00F6C5E0 /* CameraShader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = CameraShader.metal; sourceTree = "<group>"; };
+		B0EABCA52689C6D900F6C5E0 /* CameraShaderType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CameraShaderType.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B05EC8FB2688513100293499 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B05EC8F52688513100293499 = {
+			isa = PBXGroup;
+			children = (
+				B05EC9002688513100293499 /* T0-MetalCameraRecorder */,
+				B05EC8FF2688513100293499 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B05EC8FF2688513100293499 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B05EC8FE2688513100293499 /* T0-MetalCameraRecorder.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B05EC9002688513100293499 /* T0-MetalCameraRecorder */ = {
+			isa = PBXGroup;
+			children = (
+				B0EABC97268993FF00F6C5E0 /* CameraDevice */,
+				B0EABC96268993BC00F6C5E0 /* CameraRender */,
+				B05EC92E268858A400293499 /* MetalRender */,
+				B05EC9292688580700293499 /* MetalRecorder */,
+				B05EC9202688526400293499 /* MetalRenderDelegate */,
+				B05EC91B2688517F00293499 /* MetalView */,
+				B05EC9012688513100293499 /* AppDelegate.h */,
+				B05EC9022688513100293499 /* AppDelegate.m */,
+				B05EC9042688513100293499 /* SceneDelegate.h */,
+				B05EC9052688513100293499 /* SceneDelegate.m */,
+				B05EC9072688513100293499 /* ViewController.h */,
+				B05EC9082688513100293499 /* ViewController.m */,
+				B05EC90A2688513100293499 /* Main.storyboard */,
+				B05EC90D2688513100293499 /* Assets.xcassets */,
+				B05EC90F2688513100293499 /* LaunchScreen.storyboard */,
+				B05EC9122688513100293499 /* Info.plist */,
+				B05EC9132688513100293499 /* main.m */,
+			);
+			path = "T0-MetalCameraRecorder";
+			sourceTree = "<group>";
+		};
+		B05EC91B2688517F00293499 /* MetalView */ = {
+			isa = PBXGroup;
+			children = (
+				B05EC91C268851C500293499 /* MetalView.h */,
+				B05EC91D268851C500293499 /* MetalView.m */,
+			);
+			path = MetalView;
+			sourceTree = "<group>";
+		};
+		B05EC9202688526400293499 /* MetalRenderDelegate */ = {
+			isa = PBXGroup;
+			children = (
+				B05EC9212688529F00293499 /* MetalFrameBuffer.h */,
+				B05EC9232688529F00293499 /* MetalFrameBuffer.m */,
+				B05EC9222688529F00293499 /* MetalViewDelegateRender.h */,
+				B05EC9242688529F00293499 /* MetalViewDelegateRender.m */,
+			);
+			path = MetalRenderDelegate;
+			sourceTree = "<group>";
+		};
+		B05EC9292688580700293499 /* MetalRecorder */ = {
+			isa = PBXGroup;
+			children = (
+				B05EC92A2688588F00293499 /* BackedCVPixelBufferMetalRecoder.h */,
+				B05EC92B2688588F00293499 /* BackedCVPixelBufferMetalRecoder.m */,
+			);
+			path = MetalRecorder;
+			sourceTree = "<group>";
+		};
+		B05EC92E268858A400293499 /* MetalRender */ = {
+			isa = PBXGroup;
+			children = (
+				B05EC933268858F000293499 /* ScreenMesh.h */,
+				B05EC931268858F000293499 /* ScreenMesh.m */,
+				B05EC932268858F000293499 /* ScreenRender.h */,
+				B05EC934268858F000293499 /* ScreenRender.m */,
+				B05EC92F268858F000293499 /* ScreenShader.metal */,
+				B05EC930268858F000293499 /* ScreenShaderType.h */,
+			);
+			path = MetalRender;
+			sourceTree = "<group>";
+		};
+		B0EABC96268993BC00F6C5E0 /* CameraRender */ = {
+			isa = PBXGroup;
+			children = (
+				B0EABC98268995AA00F6C5E0 /* CameraRender.h */,
+				B0EABC99268995AA00F6C5E0 /* CameraRender.m */,
+				B0EABCA22689C64B00F6C5E0 /* CameraShader.metal */,
+				B0EABCA52689C6D900F6C5E0 /* CameraShaderType.h */,
+			);
+			path = CameraRender;
+			sourceTree = "<group>";
+		};
+		B0EABC97268993FF00F6C5E0 /* CameraDevice */ = {
+			isa = PBXGroup;
+			children = (
+				B0EABC9D26899DE300F6C5E0 /* MetalCameraDevice.h */,
+				B0EABC9E26899DE300F6C5E0 /* MetalCameraDevice.m */,
+			);
+			path = CameraDevice;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B05EC8FD2688513100293499 /* T0-MetalCameraRecorder */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B05EC9172688513100293499 /* Build configuration list for PBXNativeTarget "T0-MetalCameraRecorder" */;
+			buildPhases = (
+				B05EC8FA2688513100293499 /* Sources */,
+				B05EC8FB2688513100293499 /* Frameworks */,
+				B05EC8FC2688513100293499 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "T0-MetalCameraRecorder";
+			productName = "T0-MetalCameraRecorder";
+			productReference = B05EC8FE2688513100293499 /* T0-MetalCameraRecorder.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B05EC8F62688513100293499 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1240;
+				TargetAttributes = {
+					B05EC8FD2688513100293499 = {
+						CreatedOnToolsVersion = 12.4;
+					};
+				};
+			};
+			buildConfigurationList = B05EC8F92688513100293499 /* Build configuration list for PBXProject "T0-MetalCameraRecorder" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B05EC8F52688513100293499;
+			productRefGroup = B05EC8FF2688513100293499 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B05EC8FD2688513100293499 /* T0-MetalCameraRecorder */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B05EC8FC2688513100293499 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B05EC9112688513100293499 /* LaunchScreen.storyboard in Resources */,
+				B05EC90E2688513100293499 /* Assets.xcassets in Resources */,
+				B05EC90C2688513100293499 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B05EC8FA2688513100293499 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B05EC936268858F000293499 /* ScreenMesh.m in Sources */,
+				B05EC9092688513100293499 /* ViewController.m in Sources */,
+				B0EABC9A268995AA00F6C5E0 /* CameraRender.m in Sources */,
+				B0EABC9F26899DE300F6C5E0 /* MetalCameraDevice.m in Sources */,
+				B05EC9032688513100293499 /* AppDelegate.m in Sources */,
+				B05EC937268858F000293499 /* ScreenRender.m in Sources */,
+				B05EC9142688513100293499 /* main.m in Sources */,
+				B05EC9252688529F00293499 /* MetalFrameBuffer.m in Sources */,
+				B05EC9262688529F00293499 /* MetalViewDelegateRender.m in Sources */,
+				B05EC9062688513100293499 /* SceneDelegate.m in Sources */,
+				B05EC92C2688588F00293499 /* BackedCVPixelBufferMetalRecoder.m in Sources */,
+				B05EC935268858F000293499 /* ScreenShader.metal in Sources */,
+				B05EC91E268851C500293499 /* MetalView.m in Sources */,
+				B0EABCA32689C64B00F6C5E0 /* CameraShader.metal in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		B05EC90A2688513100293499 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B05EC90B2688513100293499 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		B05EC90F2688513100293499 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B05EC9102688513100293499 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		B05EC9152688513100293499 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		B05EC9162688513100293499 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B05EC9182688513100293499 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = FKVLYCJL24;
+				INFOPLIST_FILE = "T0-MetalCameraRecorder/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = MyMetalDemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B05EC9192688513100293499 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = FKVLYCJL24;
+				INFOPLIST_FILE = "T0-MetalCameraRecorder/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = MyMetalDemo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B05EC8F92688513100293499 /* Build configuration list for PBXProject "T0-MetalCameraRecorder" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B05EC9152688513100293499 /* Debug */,
+				B05EC9162688513100293499 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B05EC9172688513100293499 /* Build configuration list for PBXNativeTarget "T0-MetalCameraRecorder" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B05EC9182688513100293499 /* Debug */,
+				B05EC9192688513100293499 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B05EC8F62688513100293499 /* Project object */;
+}
