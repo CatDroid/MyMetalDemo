@@ -326,6 +326,15 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
                                                                 height,
                                                                 0,
                                                                 &tmpTexture);
+    
+    // 目前来说可以通过这种方法 把pixelbuffer转换成MTLTexture
+    
+    // ???
+    // 为了确保我们正在使用同一份物理内存（避免拷贝发生），我们需要使用 IOSurface 作为后备存储（Backing Store）
+    // IOSurface 是一个共享的支持硬件加速的 Image Buffer，
+    // 通过使用 GPU 驻留追踪（GPU residency tracking），它还支持跨进程、跨框架间的访问。
+    // 如果此时 Pixel Buffer 由 IOSurface 后备存储，可以零成本创建一个映射向 Pixel Buffer 的 Metal Texture
+    //
     if (result == kCVReturnSuccess)
     {
         //NSLog(@"CFGetRetainCount---CVMetalTextureRef counter %ld", CFGetRetainCount(tmpTexture)); // 1
