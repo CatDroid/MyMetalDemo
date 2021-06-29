@@ -21,6 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 -(BOOL) openCamera:(id<MTLDevice>) device;
 
+-(void) setFrameRate:(float) frameRate;
+
 -(BOOL) closeCamera;
 
 -(void) dealloc;

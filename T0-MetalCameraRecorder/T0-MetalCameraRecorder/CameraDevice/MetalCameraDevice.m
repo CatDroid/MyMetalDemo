@@ -279,17 +279,41 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
 
 - (void)setExposurePoint: (CGPoint) pos
 {
-    NSError *error = nil;
     if (_inputDevice != NULL)
     {
+        NSError *error = nil;
         AVCaptureDevice* device =   _inputDevice.device;
-        [device lockForConfiguration:&error]; // 设置摄像头参数前先lock 注意这个是AVCaptureDevice 不是input或者output
-        [device setExposurePointOfInterest:pos];
-        [device setExposureMode:AVCaptureExposureModeContinuousAutoExposure];
-        [device unlockForConfiguration];
+        BOOL locked = [device lockForConfiguration:&error]; // 设置摄像头参数前先lock 注意这个是AVCaptureDevice 不是input或者output
+        if (locked)
+        {
+            [device setExposurePointOfInterest:pos];
+            [device setExposureMode:AVCaptureExposureModeContinuousAutoExposure];
+            [device unlockForConfiguration];
+        }
+   
     }
 
 }
+
+- (void) setFrameRate:(float) frameRate
+{
+    if (_inputDevice != NULL)
+    {
+        NSError *error = nil;
+        AVCaptureDevice* device =  _inputDevice.device;
+        BOOL locked = [device lockForConfiguration:&error];
+        if (locked)
+        {
+            // CMTimeMake(value, timescale)  value / timeScale 得到是总时间长度
+            // value        帧数目
+            // timeScale    帧率
+            [device setActiveVideoMinFrameDuration:CMTimeMake(1, frameRate)]; // 设置帧间隔
+            [device setActiveVideoMaxFrameDuration:CMTimeMake(1, frameRate)];
+            [device unlockForConfiguration];
+        }
+    }
+}
+
 
 -(void) dealloc
 {
@@ -342,7 +366,7 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
         // 从image buffer获取MTLTexture
         id<MTLTexture> texture = CVMetalTextureGetTexture(tmpTexture);
         
-        NSLog(@"CFGetRetainCount---id<MTLTexture> counter %ld texture %p", CFGetRetainCount((__bridge CFTypeRef)texture), texture); // 2
+        // NSLog(@"CFGetRetainCount---id<MTLTexture> counter %ld texture %p", CFGetRetainCount((__bridge CFTypeRef)texture), texture); // 2
         
         // NSLog(@"CVMetalTextureGetTexture texture:%@ class:%@", texture, [texture class]);
         // class   是 CaptureMTLTexture

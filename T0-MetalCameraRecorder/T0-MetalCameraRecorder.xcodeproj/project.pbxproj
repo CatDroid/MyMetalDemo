@@ -24,6 +24,8 @@
 		B0EABC9A268995AA00F6C5E0 /* CameraRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B0EABC99268995AA00F6C5E0 /* CameraRender.m */; };
 		B0EABC9F26899DE300F6C5E0 /* MetalCameraDevice.m in Sources */ = {isa = PBXBuildFile; fileRef = B0EABC9E26899DE300F6C5E0 /* MetalCameraDevice.m */; };
 		B0EABCA32689C64B00F6C5E0 /* CameraShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B0EABCA22689C64B00F6C5E0 /* CameraShader.metal */; };
+		B0EABFE7268A1DD200F6C5E0 /* RecordRender.metal in Sources */ = {isa = PBXBuildFile; fileRef = B0EABFE6268A1DD200F6C5E0 /* RecordRender.metal */; };
+		B0EABFEC268A1E3900F6C5E0 /* RecordRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B0EABFEB268A1E3900F6C5E0 /* RecordRender.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +61,10 @@
 		B0EABC9E26899DE300F6C5E0 /* MetalCameraDevice.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalCameraDevice.m; sourceTree = "<group>"; };
 		B0EABCA22689C64B00F6C5E0 /* CameraShader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = CameraShader.metal; sourceTree = "<group>"; };
 		B0EABCA52689C6D900F6C5E0 /* CameraShaderType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CameraShaderType.h; sourceTree = "<group>"; };
+		B0EABFE6268A1DD200F6C5E0 /* RecordRender.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = RecordRender.metal; sourceTree = "<group>"; };
+		B0EABFE9268A1DF500F6C5E0 /* RecordShaderType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RecordShaderType.h; sourceTree = "<group>"; };
+		B0EABFEA268A1E3900F6C5E0 /* RecordRender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RecordRender.h; sourceTree = "<group>"; };
+		B0EABFEB268A1E3900F6C5E0 /* RecordRender.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RecordRender.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -137,6 +143,10 @@
 			children = (
 				B05EC92A2688588F00293499 /* BackedCVPixelBufferMetalRecoder.h */,
 				B05EC92B2688588F00293499 /* BackedCVPixelBufferMetalRecoder.m */,
+				B0EABFE6268A1DD200F6C5E0 /* RecordRender.metal */,
+				B0EABFE9268A1DF500F6C5E0 /* RecordShaderType.h */,
+				B0EABFEA268A1E3900F6C5E0 /* RecordRender.h */,
+				B0EABFEB268A1E3900F6C5E0 /* RecordRender.m */,
 			);
 			path = MetalRecorder;
 			sourceTree = "<group>";
@@ -251,11 +261,13 @@
 				B05EC937268858F000293499 /* ScreenRender.m in Sources */,
 				B05EC9142688513100293499 /* main.m in Sources */,
 				B05EC9252688529F00293499 /* MetalFrameBuffer.m in Sources */,
+				B0EABFEC268A1E3900F6C5E0 /* RecordRender.m in Sources */,
 				B05EC9262688529F00293499 /* MetalViewDelegateRender.m in Sources */,
 				B05EC9062688513100293499 /* SceneDelegate.m in Sources */,
 				B05EC92C2688588F00293499 /* BackedCVPixelBufferMetalRecoder.m in Sources */,
 				B05EC935268858F000293499 /* ScreenShader.metal in Sources */,
 				B05EC91E268851C500293499 /* MetalView.m in Sources */,
+				B0EABFE7268A1DD200F6C5E0 /* RecordRender.metal in Sources */,
 				B0EABCA32689C64B00F6C5E0 /* CameraShader.metal in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -316,7 +328,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;

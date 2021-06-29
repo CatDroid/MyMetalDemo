@@ -34,7 +34,7 @@
     
     MetalFrameBuffer* _offscreenFramebuffer ;
     
-    MetalCameraDevice* _device ;
+    MetalCameraDevice* _cameraDevice ;
     CameraRender* _cameraRender ;
     ScreenRender* _onscreenRender ;
     
@@ -136,10 +136,11 @@
                          WithMesh:nil];
     
     // 录制
-//    if (recorder)
-//    {
-//        [recorder writeFrame:view.currentDrawable.texture OnCommand:commandBuffer];
-//    }
+    if (recorder)
+    {
+        [recorder drawToRecorder:_offscreenFramebuffer.renderPassDescriptor.colorAttachments[0].texture
+                       OnCommand:commandBuffer ];
+    }
     
  
     [commandBuffer presentDrawable:view.currentDrawable];
@@ -153,7 +154,7 @@
     // https://developer.apple.com/library/archive/samplecode/MetalVideoCapture/Listings/MetalVideoCapture_AAPLRenderer_mm.html#//apple_ref/doc/uid/TP40015131-MetalVideoCapture_AAPLRenderer_mm-DontLinkElementID_8
     //
 
-    NSLog(@"draw done  %p", cameraTexture);
+    // NSLog(@"draw done  %p", cameraTexture);
 }
 
 
@@ -169,37 +170,42 @@
 
 -(void) switchRecord
 {
-//    if (recorder == nil)
-//    {
-//        recorder = [[MetalVideoRecorder alloc] init:_drawableSize];
-//        [recorder startRecording];
-//    }
-//    else
-//    {
-//        [recorder endRecording];
-//        recorder = nil;
-//    }
+    if (recorder == nil)
+    {
+        recorder = [[BackedCVPixelBufferMetalRecoder alloc] init:_drawableSize WithDevice: _globalDevice];
+        [recorder startRecording];
+    }
+    else
+    {
+        [recorder endRecording];
+        recorder = nil;
+    }
 }
 
 -(BOOL) switchCamera
 {
-    if (_device == nil)
+    if (_cameraDevice == nil)
     {
-        _device = [[MetalCameraDevice alloc] init];
+        _cameraDevice = [[MetalCameraDevice alloc] init];
         
-        BOOL result = [_device checkPermission];
+        BOOL result = [_cameraDevice checkPermission];
         if (!result)
         {
-            _device = nil;
+            _cameraDevice = nil;
             return false ;
         }
-        _device.delegate = self ;
-        [_device openCamera:_globalDevice];
+        _cameraDevice.delegate = self ;
+        [_cameraDevice openCamera:_globalDevice];
+        // [_cameraDevice setFrameRate:5.0f];
+        
+        // 用来查找内存泄漏
+        // Leaks和Memory Graph都可以
+        // debug 要勾选 dwarf with dsym 
     }
     else
     {
-        [_device closeCamera];
-        _device = nil;
+        [_cameraDevice closeCamera];
+        _cameraDevice = nil;
     }
     return true ;
 }
