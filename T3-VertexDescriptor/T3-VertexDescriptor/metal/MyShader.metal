@@ -68,9 +68,7 @@ vertex VertexOut MyVertexShader(VertexAttribute in [[stage_in]],
         out.texCoord = float2(0.0, 0.0);
         // 如果else分支 代码注释掉 不设置out的话，就会用if分支计算出来的值
     }
-   
 
-    
     return out ;
 }
 

@@ -270,6 +270,26 @@
     
     typedef struct
     {
+        float one ;         // offset 0         size = 1*4 = 4
+        simd_float2 two ;   // offset 2*4 = 8   size = 2*4 = 8
+        simd_float4 three ; // offset 16        size = 16
+        simd_float2 four ;  // offset 32        size = 8
+        simd_float2 five[5];// offset 40        size = 2 * 4 * 5 = 40  total = 80 
+    }
+    MyAlignMultiSIMD;
+    
+    NSLog(@"对齐 MyAlignMultiSIMD %lu one %lu two %lu three %lu four %lu five %lu",
+          sizeof(MyAlignMultiSIMD),
+          (unsigned long)&(((MyAlignMultiSIMD*)0)->one),
+          (unsigned long)&(((MyAlignMultiSIMD*)0)->two),
+          (unsigned long)&(((MyAlignMultiSIMD*)0)->three),
+          (unsigned long)&(((MyAlignMultiSIMD*)0)->four),
+          (unsigned long)&(((MyAlignMultiSIMD*)0)->five)
+          );
+    
+    
+    typedef struct
+    {
         float buffer[98];
         float size ;
     }
