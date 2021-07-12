@@ -29,8 +29,10 @@
 typedef struct
 {
     vector_float2 pos ;
-    vector_float2 uv ;
-} MyVertex;
+    vector_float2 uv ;  // 按照 2*4 = 8 字节对齐
+    float tangle[3];    // offset = 16
+    
+} MyVertex;  // sizeof(MyVertex) = 32 
 
 typedef struct
 {

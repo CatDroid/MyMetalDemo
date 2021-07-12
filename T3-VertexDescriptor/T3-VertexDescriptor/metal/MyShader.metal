@@ -16,10 +16,10 @@ typedef struct {
 
 // 使用 VertexDescriptor 方式 就不用ShaderType.h的MyVertex
 typedef struct {
-    float2 pos [[attribute(0)]]; // VertexDescriptor 语义绑定
-    float2 uv  [[attribute(1)]];
-    float4 tangle  [[attribute(2)]];
-    float4 normal  [[attribute(3)]];
+    vector_float2 pos [[attribute(0)]]; // VertexDescriptor 语义绑定
+    vector_float2 uv  [[attribute(1)]];
+    vector_float3 tangle  [[attribute(2)]];
+    vector_float3 normal  [[attribute(3)]];
     
 } VertexAttribute;
 
@@ -47,13 +47,20 @@ vertex VertexOut MyVertexShader(VertexAttribute in [[stage_in]],
 
     float x = (0 + size - 1) * size / 2.0 + in2->addMore.x;
     
-    if ( abs(x - result.x) > 0.000001 )
+    if ( abs(x - result.x) < 0.000001 ) // 切换这个 观察 float数组对齐
     {
         // float4 position = float4(vertexAttr[vid].pos, 0, 1);
         float4 position = float4(in.pos, 0, 1);
-        out.pos = position;
+        out.pos      = position;
         //out.texCoord = vertexAttr[vid].uv ;
         out.texCoord = in.uv ;
+        
+        float3 diff = in.tangle - float3(1.0, 2.0, 3.0);
+        if ( length(diff) > 0.00001) // 切换这个 观察float[3] vector_float3对齐
+        {
+            out.pos      = float4(0.0, 0.0, 0.0,1.0);
+            out.texCoord = float2(0.0, 0.0);
+        }
     }
     else
     {

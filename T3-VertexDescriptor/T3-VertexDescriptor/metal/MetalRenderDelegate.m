@@ -102,6 +102,7 @@
     MTLVertexDescriptor* vertexDesc = [[MTLVertexDescriptor alloc] init];
     NSLog(@" vertexDesc.attributes class is %@",  [vertexDesc.attributes class]); // MTLVertexAttributeDescriptorArrayInternal
     NSLog(@"(uint8_t)&(((MyVertex*)0)->uv) = %d", (uint8_t)&(((MyVertex*)0)->uv));
+    NSLog(@"(uint8_t)&(((MyVertex*)0)->tangle) = %d", (uint8_t)&(((MyVertex*)0)->tangle));
     NSLog(@"sizeof(MyVertex) = %lu", sizeof(MyVertex));
     
     // pos
@@ -111,13 +112,49 @@
     // uv
     vertexDesc.attributes[1].format = MTLVertexFormatFloat2;
     vertexDesc.attributes[1].offset = (uint8_t)&(((MyVertex*)0)->uv); // 8;
-    vertexDesc.attributes[0].bufferIndex = 0 ;
+    vertexDesc.attributes[1].bufferIndex = 0 ;
+    // tangle
+    vertexDesc.attributes[2].format = MTLVertexFormatFloat3;
+    vertexDesc.attributes[2].offset = (uint8_t)&(((MyVertex*)0)->tangle); // 16;
+    vertexDesc.attributes[2].bufferIndex = 0 ;
+    
     // layout
-    vertexDesc.layouts[0].stride = sizeof(MyVertex); // 16
+    vertexDesc.layouts[0].stride = sizeof(MyVertex); // 32
     vertexDesc.layouts[0].stepRate = 1;
     vertexDesc.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
     // 由于是连续定义在同一个buffer中所以这里只配置了一个layouts[0]
     // stride属性表示每次去取一个顶点数据的数据跨度，这里每个顶点数据占16字节，所以stride设置为16
+    
+    /*
+     MTLVertexDescriptor 应该按照 MTLBuffer.contents 中数据的格式定义(cpu端)
+     比如 cpu 端数据结构是
+     
+     typedef struct
+     {
+        vector_float2 pos ; // 在 MTLBuffer cpu端数据   vertexDesc.attributes[0].offset = 0
+        vector_float2 uv ;  //                        vertexDesc.attributes[1].offset = 8
+        float tangle[3];    //                        vertexDesc.attributes[2].offset = 16
+     }
+     MyVertex;               //  每个顶点 按照  vertexDesc.layouts[0].stride = sizeof(MyVertex); = 16 跳跃 ，
+                             //                 把MTLBuffer中offset=0的 赋给[attribute(0)]
+                             //                 把MTLBuffer中offset=8的 赋给[attribute(1)]
+                             //                 把MTLBuffer中offset=16的 赋给[attribute(2)]
+     
+     msl端数据结构是
+     
+     typedef struct {
+        vector_float2 pos     [[attribute(0)]];
+        vector_float2 uv      [[attribute(1)]];
+        vector_float3 tangle  [[attribute(2)]]; // 由于 MTLVertexDescriptor 没有提及这个 所以 attribute(2) attribute(3) 都没有赋值
+        vector_float3 normal  [[attribute(3)]];
+         
+     }
+     VertexAttribute;
+     
+     
+     
+     */
+    
     
     // Instance rendering(实例渲染)和Tessellating(曲面细分)等技术
     
@@ -486,9 +523,9 @@
 -(void) setupAssets:(id<MTLDevice>) device
 {
     static MyVertex vertex[] = {
-        { {0.0,  1.0},  {0.5, 0} },
-        { {1.0, -1.0},  {1,   1} },
-        { {-1.0, -1.0}, {0,   1} },
+        { {0.0,  1.0},  {0.5, 0} , 1, 2, 3 },
+        { {1.0, -1.0},  {1,   1} , 1, 2, 3 },
+        { {-1.0, -1.0}, {0,   1} , 1, 2, 3 },
     };
     _vertexBuffer = [device newBufferWithBytes:vertex length:sizeof(vertex) options:MTLResourceStorageModeShared];
     // 注意区分:
