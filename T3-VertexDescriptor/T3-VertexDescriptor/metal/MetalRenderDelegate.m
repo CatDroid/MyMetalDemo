@@ -303,7 +303,9 @@
                     NSLog(@"vertex Argument %@ (%lu) is structure ", arg.name, arg.index);  // argument table index 0 , 1 ...
                   
                     NSLog(@"vertex Argument %@ arg.bufferDataSize  = %lu", arg.name, arg.bufferDataSize); // arg.bufferDataSize  = 416   400+4*4 = 400 + 16 = 416
-                    NSLog(@"vertex Argument %@ arg.bufferAlignment = %lu", arg.name, arg.bufferAlignment);// arg.bufferAlignment = 16    ????
+ 
+                    NSLog(@"vertex Argument %@ arg.bufferAlignment = %lu", arg.name, arg.bufferAlignment);// arg.bufferAlignment = 16    按照结构体成员中最大的对齐数目
+ 
                     
                     // min alignment of starting offset in the buffer 在buffer中开始偏移的最小对齐
                     // 缓冲区数据 在内存中 所需的字节对齐方式。
