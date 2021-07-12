@@ -368,12 +368,17 @@
                     // 应该是 形参类型是结构体  arg.bufferStructType 不为空
                     
                     
-                    NSLog(@"vertex Argument %@ (%lu) is structure ", arg.name, arg.index);  // argument table index 0 , 1 ...
-                  
-                    NSLog(@"vertex Argument %@ arg.bufferDataSize  = %lu", arg.name, arg.bufferDataSize); // arg.bufferDataSize  = 416   400+4*4 = 400 + 16 = 416
+                    NSLog(@"vertex Argument %@ (%lu) is structure ", arg.name, arg.index);
+                    // argument table index 0 , 1 ...
  
-                    NSLog(@"vertex Argument %@ arg.bufferAlignment = %lu", arg.name, arg.bufferAlignment);// arg.bufferAlignment = 16    按照结构体成员中最大的对齐数目
- 
+                    NSLog(@"vertex Argument %@ arg.bufferDataSize  = %lu", arg.name, arg.bufferDataSize);
+                    // arg.bufferDataSize  = 416   400+4*4 = 400 + 16 = 416
+                    NSLog(@"vertex Argument %@ arg.bufferAlignment = %lu", arg.name, arg.bufferAlignment);
+                    // arg.bufferAlignment = 16    按照结构体成员中最大的对齐数目
+                    
+                    // !! MTLBuffer 存放的uniform数据, 应该以 bufferAlignment 这个为对齐地址偏移的 !!
+                    // 不过这里一个MTLBuffer存放一个uniform所以没有问题, bgfx使用同一个MTLBuffer存放所有render item的uniform，所以需要使用这个偏移
+                    
                     
                     // min alignment of starting offset in the buffer 在buffer中开始偏移的最小对齐
                     // 缓冲区数据 在内存中 所需的字节对齐方式。
