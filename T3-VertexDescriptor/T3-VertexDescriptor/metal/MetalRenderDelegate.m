@@ -236,6 +236,37 @@
     
     NSLog(@"sizeof(MyUniform) = %lu ", sizeof(MyUniform) ); // 416   cpu端也是16个字节对齐
     
+    // https://developer.apple.com/forums/thread/64057
+    // typedef __attribute__((__ext_vector_type__(2),__aligned__(4))) float simd_packed_float2; // 4字节对齐，而不是8字节对齐(vector_float2)
+    // typedef simd_packed_float2 packed_float2; // packed_float2 已经不用 改成 simd_packed_float2
+    NSLog(@"sizeof(simd_packed_float2) = %lu ", sizeof(packed_float2)); // = 8 simd_packed_float2 == packed_float2  =
+    NSLog(@"sizeof(vector_float2) = %lu ", sizeof(simd_float2)); // = 8 vector_float2 == simd_float2
+    
+    typedef struct
+    {
+        float first ;
+        packed_float2 offset ;
+    }
+    MyAlignPacked;
+    
+    typedef struct
+    {
+        float first ;
+        simd_float2 offset ;
+    }
+    MyAlignSIMD;
+    
+    
+    NSLog(@"对齐 MyAlignPacked %lu offset %lu offset %lu", sizeof(MyAlignPacked),
+          (unsigned long)&(((MyAlignPacked*)0)->first),
+          (unsigned long)&(((MyAlignPacked*)0)->offset) // Align 12 offset 0 offset 4
+          );
+    
+    NSLog(@"对齐 MyAlignSIMD %lu offset %lu offset %lu", sizeof(MyAlignSIMD),
+          (unsigned long)&(((MyAlignSIMD*)0)->first),
+          (unsigned long)&(((MyAlignSIMD*)0)->offset)  //  SIMD 16 offset 0 offset 8
+          );
+    
     
     typedef struct
     {
