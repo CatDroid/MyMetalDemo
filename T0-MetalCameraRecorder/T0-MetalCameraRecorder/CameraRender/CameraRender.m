@@ -49,11 +49,26 @@
     renderPipelineDesc.vertexFunction   = vertexFunction;
     renderPipelineDesc.fragmentFunction = fragmentFunction;
     
-    renderPipelineDesc.sampleCount = 1 ;
+    // MTLFunction vertexFunction.vertexAttributes  一个数组 描述 顶点着色器 的 顶点输入属性
+    NSArray<MTLVertexAttribute *> * inputAttrs = vertexFunction.vertexAttributes;
+    NSLog(@"----- MTLFunction name %@ type %lu input %lu ----",  vertexFunction.name, vertexFunction.functionType, inputAttrs.count);
+    // MTLFunctionTypeVertex = 1
+    // MTLFunctionTypeFragment = 2
+    for( MTLVertexAttribute* attr in inputAttrs)
+    {
+        NSLog(@"vertext attribute %@", attr );
+    }
+    NSLog(@"----- MTLFunction name %@ end ------------------",  vertexFunction.name);
+   
     
+     
+    
+    renderPipelineDesc.sampleCount = 1 ;
+    renderPipelineDesc.label = @"CameraRender"; // msl
     
     NSError* error ;
     _renderPipelineState = [device newRenderPipelineStateWithDescriptor:renderPipelineDesc error:&error];
+    //_renderPipelineState.label = @""; // readonly  _renderPipelineState 断点的时候无法看到shader 可以通过label来分开
     
     NSAssert(_renderPipelineState != nil, @"newRenderPipelineStateWithDescriptor fail %@", error);
     

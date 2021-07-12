@@ -32,6 +32,10 @@ typedef struct
     vector_float2 uv ;
 } MyVertex;
 
-
+typedef struct
+{
+    float myArray[98];
+    vector_float4 addMore;
+} MyUniform;
 
 #endif /* ShaderType_h */
