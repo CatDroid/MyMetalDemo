@@ -119,6 +119,8 @@
     vertexDesc.attributes[2].bufferIndex = 0 ;
     
     // layout
+    // 在渲染片元的时候 告诉vs(顶点着色器)如何提取数据 (!!片元着色器是没有的!!)
+    // 这样设置完成之后，setVertexBuffer 给到 bufferIndex=0  的 buffer 就要满足这个布局
     vertexDesc.layouts[0].stride = sizeof(MyVertex); // 32
     vertexDesc.layouts[0].stepRate = 1;
     vertexDesc.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
@@ -167,33 +169,33 @@
     //                          这样GPU可以使用同一个index索引去读取每个数组中的属性，
     //                          GPU读取比较整齐，这种方法对于某一些3D文件格式尤其合适
     
-    /*
-     
-     改成 position数据放到第一个buffer，uv放到第二个buffer上
-     
-     vertexDescriptor = [[MTLVertexDescriptor alloc] init];
-
-     // Positions.
-     vertexDescriptor.attributes[0].format = MTLVertexFormatFloat2;
-     vertexDescriptor.attributes[0].offset = 0;
-     vertexDescriptor.attributes[0].bufferIndex = 0;
-
-     // Texture coordinates.
-     vertexDescriptor.attributes[1].format = MTLVertexFormatFloat2;
-     vertexDescriptor.attributes[1].offset = 0;
-     vertexDescriptor.attributes[1].bufferIndex = 0; // ??? 应该是1  ??? 两个buffer shader怎么改？？
-
-     // Position Buffer Layout
-     vertexDescriptor.layouts[0].stride = 8;
-     vertexDescriptor.layouts[0].stepRate = 1;
-     vertexDescriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
-
-     vertexDescriptor.layouts[1].stride = 8;
-     vertexDescriptor.layouts[1].stepRate = 1;
-     vertexDescriptor.layouts[1].stepFunction = MTLVertexStepFunctionPerVertex;
  
-     */
-    renderPipelineDesc.vertexDescriptor = vertexDesc ;
+     
+//     // 改成 position数据放到第一个buffer，uv放到第二个buffer上
+//
+//    MTLVertexDescriptor* vertexDescriptor = [[MTLVertexDescriptor alloc] init];
+//
+//     // Positions.
+//     vertexDescriptor.attributes[0].format = MTLVertexFormatFloat2;
+//     vertexDescriptor.attributes[0].offset = 0;
+//     vertexDescriptor.attributes[0].bufferIndex = 0;
+//
+//     // Texture coordinates.
+//     vertexDescriptor.attributes[1].format = MTLVertexFormatFloat2;
+//     vertexDescriptor.attributes[1].offset = 0;
+//     vertexDescriptor.attributes[1].bufferIndex = 1; // ??? 应该是1  ??? 两个buffer shader怎么改？？
+//
+//     // Position Buffer Layout
+//     vertexDescriptor.layouts[0].stride = 8;
+//     vertexDescriptor.layouts[0].stepRate = 1;
+//     vertexDescriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
+//
+//     vertexDescriptor.layouts[1].stride = 8;  // layouts[1] 对应的是 bufefrIndex=1 第1个buffer??
+//     vertexDescriptor.layouts[1].stepRate = 1;
+//     vertexDescriptor.layouts[1].stepFunction = MTLVertexStepFunctionPerVertex;
+//
+     
+    renderPipelineDesc.vertexDescriptor = vertexDesc ; // 一个RenderPileLineState 只能对应一个vertexDescriptor
     
     NSError* error ;
     MTLRenderPipelineReflection* reflection = NULL; // 获取反射信息
