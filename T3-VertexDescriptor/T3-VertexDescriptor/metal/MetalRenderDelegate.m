@@ -276,17 +276,19 @@
         simd_float2 two ;   // offset 2*4 = 8   size = 2*4 = 8
         simd_float4 three ; // offset 16        size = 16
         simd_float2 four ;  // offset 32        size = 8
-        simd_float2 five[5];// offset 40        size = 2 * 4 * 5 = 40  total = 80 
+        simd_float3 five[5];// offset 48        size = 4(sizeof(float4)) * 4(float3按照float4) * 5  total = 80
+        simd_float4 six[5]; // offset 128        size = 2 * 4 * 5 = 40  total = 80
     }
     MyAlignMultiSIMD;
     
-    NSLog(@"对齐 MyAlignMultiSIMD %lu one %lu two %lu three %lu four %lu five %lu",
+    NSLog(@"对齐 MyAlignMultiSIMD %lu one %lu two %lu three %lu four %lu five %lu six %lu",
           sizeof(MyAlignMultiSIMD),
           (unsigned long)&(((MyAlignMultiSIMD*)0)->one),
           (unsigned long)&(((MyAlignMultiSIMD*)0)->two),
           (unsigned long)&(((MyAlignMultiSIMD*)0)->three),
           (unsigned long)&(((MyAlignMultiSIMD*)0)->four),
-          (unsigned long)&(((MyAlignMultiSIMD*)0)->five)
+          (unsigned long)&(((MyAlignMultiSIMD*)0)->five),
+          (unsigned long)&(((MyAlignMultiSIMD*)0)->six)
           );
     
     
