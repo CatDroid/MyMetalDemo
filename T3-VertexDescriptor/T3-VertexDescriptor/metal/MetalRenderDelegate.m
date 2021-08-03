@@ -401,12 +401,13 @@
                     // !! MTLBuffer 存放的uniform数据, 应该以 bufferAlignment 这个为对齐地址偏移的 !!
                     // 不过这里一个MTLBuffer存放一个uniform所以没有问题, bgfx使用同一个MTLBuffer存放所有render item的uniform，所以需要使用这个偏移
                     
-                    
                     // min alignment of starting offset in the buffer 在buffer中开始偏移的最小对齐
                     // 缓冲区数据 在内存中 所需的字节对齐方式。
                     
                     for (MTLStructMember* structMember in arg.bufferStructType.members ) // MTLStructMember 如果是结构体 这个是结构体的成员
                     {
+                        // MTLStructMember 无法判断是否active 只有 MTLArgument 
+                        
                         // MTLDataType
                         //      MTLDataTypeStruct = 1,
                         //      MTLDataTypeArray  = 2,
@@ -414,6 +415,8 @@
                         //      MTLDataTypeFloat4 = 6,
                         
                         NSLog(@"struct element : %@ argumentIndex : %lu type : %lu offset : %lu", structMember.name, structMember.argumentIndex, structMember.dataType, structMember.offset);
+                        
+                        
                         
                         MTLDataType dataType = structMember.dataType;
                         
@@ -644,6 +647,9 @@
     [encoder setVertexBuffer:_uniformBuffer offset:0 atIndex:1];
     // [encoder setVertexTexture:(nullable id<MTLTexture>) atIndex:] // 顶点着色器也可以有纹理
     [encoder setFragmentTexture:_texture atIndex:0];
+    
+    MTLViewport port = { 100, 200, 300, 400, 0.0, 1.0}; // 0,0 是左上角 
+    [encoder setViewport:port]; // view port 默认 zNear是0 zFar是1.0
     
     /*
      
