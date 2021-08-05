@@ -17,21 +17,47 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="g4u-WG-qIh">
-                                <rect key="frame" x="84" y="810" width="31" height="30"/>
+                                <rect key="frame" x="31" y="626" width="94" height="48"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
                                 <state key="normal" title="录制"/>
                                 <connections>
                                     <action selector="onRecord:" destination="BYZ-38-t0r" eventType="touchDown" id="CaV-eV-4Kh"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Wv8-dt-FiR">
+                                <rect key="frame" x="31" y="692" width="156" height="51"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                <state key="normal" title="View Resize"/>
+                                <connections>
+                                    <action selector="onTouchDownToChangeViewSize:" destination="BYZ-38-t0r" eventType="touchDown" id="n7g-eF-uIQ"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" tag="1314" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="eVW-Gd-RMd">
+                                <rect key="frame" x="31" y="767" width="129" height="47"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                <state key="normal" title="等待使用"/>
+                                <connections>
+                                    <action selector="onTouchDownToWaitForUse:" destination="BYZ-38-t0r" eventType="touchDown" id="FF3-7d-271"/>
                                 </connections>
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
+                    <connections>
+                        <outlet property="mBtnRecord" destination="g4u-WG-qIh" id="lj8-rR-MQ2"/>
+                        <outlet property="mBtnViewResize" destination="Wv8-dt-FiR" id="Wbb-cG-m3d"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="14" y="79"/>
+            <point key="canvasLocation" x="13.043478260869566" y="78.348214285714278"/>
         </scene>
     </scenes>
     <resources>

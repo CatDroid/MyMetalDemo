@@ -454,6 +454,24 @@
     
 }
 
+/*
+ 
+ 超出父视图后点击事件不响应
+ 
+ 在蓝色的View上添加一个Button，Button的上半部分超出了蓝色View的范围，当点击button时，只有点击Button在蓝色View范围内的部分会有响应，超出蓝色View范围的Button对点击事件没有响应
+ 
+ 这主要与iOS的事件分发机制(hit-Testing)有关。
+ 
+ hit-Testing作用是找出点击的是哪一个view，UIView中有两个方法来确定hit-TestView
+
+ - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;//如果在当前view中，就返回该view
+ - (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event;//判断触摸点是否在某个UIView中
+ 备注：hitTest:withEvent中，会调用pointInside:withEvent:，根据后者的结果判断点击的点是否在当前的view中。
+
+ 
+ */
+
+
  
 
 @end

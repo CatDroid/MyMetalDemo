@@ -70,7 +70,7 @@
 
 -(void) _setupRender:(id<MTLDevice>) gpu WithView:(MetalView*)view
 {
-    CGSize drawableSize = view.metalLayer.drawableSize;
+    CGSize drawableSize = view.metalLayer.drawableSize; // 像素 不需要乘以nativeScale
     
     _onscreenRender = [[ScreenRender alloc] initWithDevice:gpu WithView:view];
     
