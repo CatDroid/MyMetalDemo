@@ -34,6 +34,8 @@
     
     CGSize _drawableSize ;
     
+    id<MTLDevice> gpu ;
+    
 }
 
 #pragma mark - Constructor
@@ -41,10 +43,13 @@
 -(nonnull instancetype) initWithMetalView:(MetalView *) view
 {
     self = [super init];
-    if (self) {
+    if (self)
+    {
         [self _setupContext:view];
         [self _setupRender:view.device WithView:view];
-    } else {
+    }
+    else
+    {
         NSLog(@"initWithMetalKitView super init fail");
     }
     return self ;
@@ -60,24 +65,23 @@
     view.sampleCount = 1 ;
     view.clearColor = MTLClearColorMake(1.0, 1.0, 0.0, 1.0);
     
-    _drawableSize = view.metalLayer.drawableSize ;
+    _drawableSize = view.metalLayer.drawableSize ; // 像素 不需要乘以nativeScale
 
     // 使用设备上下文创建了全局唯一的指令队列对象
-    id<MTLDevice> gpu = view.device;
+    gpu = view.device;
     _commandQueue = [gpu newCommandQueue];
 
 }
 
 -(void) _setupRender:(id<MTLDevice>) gpu WithView:(MetalView*)view
 {
-    CGSize drawableSize = view.metalLayer.drawableSize; // 像素 不需要乘以nativeScale
-    
+   
     _onscreenRender = [[ScreenRender alloc] initWithDevice:gpu WithView:view];
     
     _triangleRender = [[ParallelTriangleRender alloc] initWithDevice:gpu];
-    _offscreenFramebuffer = [[MetalFrameBuffer alloc] initWithDevice:gpu WithSize:drawableSize];
+    _offscreenFramebuffer = [[MetalFrameBuffer alloc] initWithDevice:gpu WithSize:_drawableSize];
     
-    _quadRender = [[QuadRender alloc] initWithDevice:gpu WithSize:drawableSize];
+    _quadRender = [[QuadRender alloc] initWithDevice:gpu WithSize:_drawableSize];
    
     //recorder = [[MetalVideoRecorder alloc] init:_drawableSize];
     //[recorder startRecording];
@@ -87,8 +91,7 @@
 //- (void) drawInMTKView:(nonnull MTKView *)view
 -(void) OnDrawFrame:(CAMetalLayer*) layer WithView:(MetalView*) view
 {
-         
-    
+
     
     // 整个渲染只有一个commandbuffer, 但是有多个encoder：一个并行encoder(可以有两个子encoder单独编码) 一个普通 encoder(可以有多个draw)
     id<MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
@@ -120,7 +123,7 @@
                  WithInputTexture:_offscreenFramebuffer.renderPassDescriptor.colorAttachments[0].texture
                          WithMesh:nil];
     
-    if (recorder)
+    if (recorder) // 拿layer的texture去做编码读取。frameonly=false  但是也可以用离屏的 _offscreenFramebuffer
     {
         [recorder writeFrame:view.currentDrawable.texture OnCommand:commandBuffer];
     }
@@ -154,7 +157,16 @@
 {
     NSLog(@"View Size Change To %f,%f", size.width, size.height);
     _drawableSize = size ;
-    // TODO
+    
+    // MetalView 在回调 OnDrawableSizeChange OnDrawFrame 已经做了互斥处理
+    
+    // MTLTexture没有resize功能 所以直接重建
+    //
+    _offscreenFramebuffer = [[MetalFrameBuffer alloc] initWithDevice:gpu WithSize:_drawableSize];
+    
+    // quad正方形 重新设置viewPort (否则变形)
+    //
+    [_quadRender sizeChangedOnUIThread:size];
 }
 
 

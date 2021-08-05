@@ -116,6 +116,13 @@
     return self ;
 }
 
+-(void) sizeChangedOnUIThread:(CGSize) size
+{
+    ViewPortScaler* unformBuffer = (ViewPortScaler*)_viewPortScalerUniformBuffer.contents;
+    unformBuffer->viewport = (vector_float2){1.0, size.width/size.height};
+}
+
+
 -(BOOL) renderOnFrameBuffer:(MetalFrameBuffer*) framebuffer
             OnCommandBuffer:(id<MTLCommandBuffer>) buffer
            WithInputTexture:(nullable id<MTLTexture>) input

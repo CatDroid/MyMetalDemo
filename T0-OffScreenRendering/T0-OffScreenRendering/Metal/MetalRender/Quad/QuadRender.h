@@ -17,6 +17,9 @@ NS_ASSUME_NONNULL_BEGIN
 -(instancetype) init NS_UNAVAILABLE;
 -(instancetype) initWithDevice:(id<MTLDevice>) gpu WithSize:(CGSize)size NS_DESIGNATED_INITIALIZER;
 
+
+-(void) sizeChangedOnUIThread:(CGSize) size;
+
 -(BOOL) renderOnFrameBuffer:(MetalFrameBuffer*) framebuffer
             OnCommandBuffer:(id<MTLCommandBuffer>) buffer
            WithInputTexture:(nullable id<MTLTexture>) input
