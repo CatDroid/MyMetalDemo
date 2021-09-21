@@ -19,6 +19,9 @@
 #import "MetalCameraDevice.h"
 
 #import "BackedCVPixelBufferMetalRecoder.h"
+#import "CVPixelBufferPoolReader.h"
+
+//#define SIMPLE_PIXEL_BUFFER 1
 
 // 匿名分类 类扩展 不想外面知道内部实现的协议
 @interface MetalViewDelegateRender() <CameraMetalFrameDelegate>
@@ -38,8 +41,13 @@
     CameraRender* _cameraRender ;
     ScreenRender* _onscreenRender ;
     
+#if SIMPLE_PIXEL_BUFFER
+	CVPixelBufferPoolReader* recorder ;
+#else
     BackedCVPixelBufferMetalRecoder* recorder ;
-    
+#endif
+	
+	
     CGSize _drawableSize ;
     
     id<MTLTexture> _readyCameraTexture;
@@ -172,7 +180,11 @@
 {
     if (recorder == nil)
     {
-        recorder = [[BackedCVPixelBufferMetalRecoder alloc] init:_drawableSize WithDevice: _globalDevice];
+#if SIMPLE_PIXEL_BUFFER
+		recorder = [[CVPixelBufferPoolReader alloc] init:_drawableSize WithDevice: _globalDevice];
+#else
+		recorder = [[BackedCVPixelBufferMetalRecoder alloc] init:_drawableSize WithDevice: _globalDevice];
+#endif
         [recorder startRecording];
     }
     else
