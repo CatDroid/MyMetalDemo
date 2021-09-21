@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B0A7540E26F9AD9800607EFA /* blue.jpg in Resources */ = {isa = PBXBuildFile; fileRef = B0A7540D26F9AD9800607EFA /* blue.jpg */; };
+		B0A7541126F9B7DA00607EFA /* rgbamap.png in Resources */ = {isa = PBXBuildFile; fileRef = B0A7541026F9B7DA00607EFA /* rgbamap.png */; };
 		B0ABD32626CD41DC00A2536A /* sRGBToLinearRGB.png in Resources */ = {isa = PBXBuildFile; fileRef = B0ABD32526CD41DC00A2536A /* sRGBToLinearRGB.png */; };
 		B0BA7B78267AF0790041612A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7B77267AF0790041612A /* AppDelegate.m */; };
 		B0BA7B7B267AF0790041612A /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7B7A267AF0790041612A /* SceneDelegate.m */; };
@@ -23,6 +24,7 @@
 
 /* Begin PBXFileReference section */
 		B0A7540D26F9AD9800607EFA /* blue.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = blue.jpg; sourceTree = "<group>"; };
+		B0A7541026F9B7DA00607EFA /* rgbamap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = rgbamap.png; sourceTree = "<group>"; };
 		B0ABD32526CD41DC00A2536A /* sRGBToLinearRGB.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sRGBToLinearRGB.png; sourceTree = "<group>"; };
 		B0BA7B73267AF0790041612A /* T2-TextureMapping.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "T2-TextureMapping.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0BA7B76267AF0790041612A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -104,6 +106,7 @@
 		B0BA7B9C267B507B0041612A /* Image */ = {
 			isa = PBXGroup;
 			children = (
+				B0A7541026F9B7DA00607EFA /* rgbamap.png */,
 				B0A7540D26F9AD9800607EFA /* blue.jpg */,
 				B0ABD32526CD41DC00A2536A /* sRGBToLinearRGB.png */,
 				B0BA7B9D267B50830041612A /* texture01.jpg */,
@@ -173,6 +176,7 @@
 				B0BA7BA1267B569D0041612A /* texture01.jpg in Resources */,
 				B0ABD32626CD41DC00A2536A /* sRGBToLinearRGB.png in Resources */,
 				B0BA7B81267AF0790041612A /* Main.storyboard in Resources */,
+				B0A7541126F9B7DA00607EFA /* rgbamap.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

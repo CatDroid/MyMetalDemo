@@ -17,20 +17,63 @@
     
     id<MTLBuffer> _vertexBuffer ;
     id<MTLTexture> _texture ;
-    
+	
+#define SRGB_SWITCH_COUNT 180  // 3s*60fps
+	int sRGBswitch ;
+	bool isSRGB ;
+	int picOrder ;
+	
+
 }
+
+// Initializer element is not a compile-time constant
+// 不能定义全局的NSArray对象
+// NSArray* kPictures = @[
+const NSString* kPictures[] = {
+   @"blue",
+   @"rgbamap",
+   @"texture01",
+};
+
+const NSString*  kPicturesPost[] = {
+   @"jpg",
+   @"png",
+   @"jpg",
+};
+
+/*
+
+ 	
+ 	除了NSString类型之外，都不允许在方法外部声明一个 ‘静态全局常量类型的OC对象’
+	你声明的static const NSArray *imgArr 在‘编译’的时候 编译器并不知道imgArr是什么类型
+ 
+PS：
+ 	全局常量类型的常量，static const是系统在编译的时候就需要确定你所定义的常量是什么类型的，
+ 	然而OC的对象的类型是在‘运行时’确定的。
+ 	与基本数据类型的确定时间不同，
+ 	由"编译时" 推到了 "运行时"（OC支持多态的原因）
+ 
+	但是NSString除外，NSString是一种特殊的数据类型
+ 
+ */
 
 -(instancetype) initWithMTKView:(MTKView*) view
 {
     self = [super init];
     if (self) {
+		
+	
+		
         [self setupView:view];
         [self setupRenderPipe:view];
-        [self loadAssets:view.device];
+		[self loadAssets:view.device use:isSRGB];
         
     } else {
         NSLog(@"initWithMTKView super init nil");
     }
+	
+
+	
     return self ;
 }
 
@@ -98,7 +141,7 @@
     _commandQueue = [view.device newCommandQueue];
 }
 
--(void) loadAssets:(id<MTLDevice>) device
+-(void) loadAssets:(id<MTLDevice>) device use:(BOOL)isSRGB
 {
     // 加载顶点属性
     static MyVertex vertex[] = {
@@ -118,16 +161,29 @@
     NSDictionary* textureLoaderOptions = @{
         MTKTextureLoaderOptionTextureUsage: @(MTLTextureUsageShaderRead), // An option for reading or sampling from the texture in a shader.
         MTKTextureLoaderOptionTextureStorageMode: @(MTLStorageModePrivate) // The resource can be accessed only by the GPU.
-        ,MTKTextureLoaderOptionSRGB:@(YES) // 如果不设置这个 jpg解码到纹理是sRGB
+        ,MTKTextureLoaderOptionSRGB:@(isSRGB) // 如果不设置这个 jpg解码到纹理是sRGB
     };
 	// 如果是NO,那么图片数据会作为linearRGB; 如果是YES,那么图片数据作为sRGB 如果不配置, 如果不配置并且加载时候做了伽马纠正,只会使用sRGB信息??
     // !!!如果是linearRGB的图片 作为sRGB图片来对待 那么就会变暗!!!
     
+
+	
+	
+	if (!isSRGB)
+	{
+		picOrder++;
+		picOrder = picOrder % (sizeof(kPictures)/sizeof(kPictures[0]));
+	}
+	
+ 
+	
+	
     // Synchronously loads image data and creates a Metal texture from the named texture asset in an asset catalog.
     // 同步加载图片(不用自己解码) 和 创建metal纹理  资源要在asset目录
     //_texture = [textureloader newTextureWithName:@"texture01.jpg" scaleFactor:1.0 bundle:nil options:textureLoaderOptions error:&error];
     // 纹理放在bundle或者assets  或者 newTextureWithContentsOfURL:url  路径
-    NSURL* path = [[NSBundle mainBundle] URLForResource:@"blue" withExtension:@".jpg"];
+    //NSURL* path = [[NSBundle mainBundle] URLForResource:@"blue" withExtension:@".jpg"]; // 默认是sRGB 会显示比较暗
+	NSURL* path = [[NSBundle mainBundle] URLForResource:kPictures[picOrder]  withExtension:kPicturesPost[picOrder]];// 默认是sRGB
     _texture = [textureloader newTextureWithContentsOfURL:path options:textureLoaderOptions error:&error];
     if (_texture == nil)
     {
@@ -163,7 +219,7 @@
 	// sRGB对应的是Gamma0.45所在的空间
 	// “照片只能保存在Gamma0.45空间，经过显示器的Gamma2.2调整后，才和你现在看到的一样。换句话说，sRGB格式相当于对物理空间的颜色做了一次伽马校正”
 	//
-    NSLog(@"jpg MTLTextureLoader is RGB? RGBA? %lu", (unsigned long)_texture.pixelFormat);
+    NSLog(@"MTLTextureLoader is RGB? RGBA? %lu", (unsigned long)_texture.pixelFormat);
     
     
     // 通过MTLDevice和描述符 来获取 Texture 需要自己解码
@@ -241,6 +297,14 @@
     [commandBuffer presentDrawable:view.currentDrawable];
     [commandBuffer commit];
     
+	
+	sRGBswitch++ ;
+	if (sRGBswitch % SRGB_SWITCH_COUNT == 0)
+	{
+		isSRGB = !isSRGB;
+		NSLog(@" switch to %s", isSRGB?"sRGB":"linearRGB");
+		[self loadAssets:view.device use:isSRGB];
+	}
     
 }
 
