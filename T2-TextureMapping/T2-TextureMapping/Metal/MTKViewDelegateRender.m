@@ -118,23 +118,57 @@
     NSDictionary* textureLoaderOptions = @{
         MTKTextureLoaderOptionTextureUsage: @(MTLTextureUsageShaderRead), // An option for reading or sampling from the texture in a shader.
         MTKTextureLoaderOptionTextureStorageMode: @(MTLStorageModePrivate) // The resource can be accessed only by the GPU.
+        ,MTKTextureLoaderOptionSRGB:@(YES) // 如果不设置这个 jpg解码到纹理是sRGB
     };
-    
+	// 如果是NO,那么图片数据会作为linearRGB; 如果是YES,那么图片数据作为sRGB 如果不配置, 如果不配置并且加载时候做了伽马纠正,只会使用sRGB信息??
+    // !!!如果是linearRGB的图片 作为sRGB图片来对待 那么就会变暗!!!
     
     // Synchronously loads image data and creates a Metal texture from the named texture asset in an asset catalog.
     // 同步加载图片(不用自己解码) 和 创建metal纹理  资源要在asset目录
     //_texture = [textureloader newTextureWithName:@"texture01.jpg" scaleFactor:1.0 bundle:nil options:textureLoaderOptions error:&error];
     // 纹理放在bundle或者assets  或者 newTextureWithContentsOfURL:url  路径
-    NSURL* path = [[NSBundle mainBundle] URLForResource:@"texture01" withExtension:@".jpg"];
+    NSURL* path = [[NSBundle mainBundle] URLForResource:@"blue" withExtension:@".jpg"];
     _texture = [textureloader newTextureWithContentsOfURL:path options:textureLoaderOptions error:&error];
     if (_texture == nil)
     {
         NSLog(@"MTKTextureLoader  newTextureWithName fail %@", error);
     }
+	
+	NSLog(@" _texture 引用计数 %lu ", CFGetRetainCount((__bridge CFTypeRef)(_texture))); // 这个就是 2 ;
+    
+ 
+    // sRGB 是一种标准的颜色格式，它是站在我们人类肉眼的对不同颜色的可分辨度和敏感度去定义的一种颜色格式
+    //
+    // 如果用 sRGB 去表示灰度颜色数据的话，你会发现 sRGB 的颜色渐变并不是线性的。我们会看到暗色区域变化更快，而大部分的渐变区域都是浅色
+    //
+    // 当采样操作引用具有 sRGB 像素格式的纹理时，Metal 实现会在采样操作发生之前将 sRGB 颜色空间(sRGB color space )组件转换为线性颜色空间(linear color space)。
+    //
+    // 因为对于人眼来说，对浅色的敏感度其实是高于深色的，所以我们会用更多的值去表示浅色
+    //
+    // 相对于 Abobe RGB 来说，sRGB 的色域更窄，但是由于 sRGB 作为标准的 RGB，使得让它可以保证在不同设备上的颜色表现都是一致的
+    //
+    // If S <= 0.04045, L = S/12.92
+    // If S > 0.04045,  L = ((S+0.055)/1.055)^2.4
+    //
+    // MTLPixelFormatBGRA8Unorm_sRGB = 81, // sRGB  采样这种纹理时候会转换成线性空间 见 sRGBToLinearRGB.png
+    // MTLPixelFormatBGRA8Unorm      = 80,
+    //
+	// Gamma、Linear、sRGB
+    // https://zhuanlan.zhihu.com/p/66558476
+	//
+	// "人眼对暗的感知更加敏感的事实"--- 用更大的数据范围来存暗色，用较小的数据范围来存亮色。这就是sRGB格式做的，定义在Gamma0.45空间。
+	// 而且还有一个好处就是，由于显示器自带Gamma2.2，所以我们不需要额外操作显示器就能显示回正确的颜色
+	//
+	// Gamma纠正(Gamma0.45) 是针对显示器 Gamma2.2 的空间 做纠正
+	// sRGB对应的是Gamma0.45所在的空间
+	// “照片只能保存在Gamma0.45空间，经过显示器的Gamma2.2调整后，才和你现在看到的一样。换句话说，sRGB格式相当于对物理空间的颜色做了一次伽马校正”
+	//
+    NSLog(@"jpg MTLTextureLoader is RGB? RGBA? %lu", (unsigned long)_texture.pixelFormat);
+    
     
     // 通过MTLDevice和描述符 来获取 Texture 需要自己解码
-//    MTLTextureDescriptor* textureDesc = [[MTLTextureDescriptor alloc] init];
-//    textureDesc.pixelFormat = MTLPixelFormatBGRA8Unorm ; // B G R A ??? uint_8 normalize
+//     MTLTextureDescriptor* textureDesc = [[MTLTextureDescriptor alloc] init];
+//     textureDesc.pixelFormat = MTLPixelFormatBGRA8Unorm ; // B G R A ??? uint_8 normalize
 //    textureDesc.width = 1920;
 //    textureDesc.height = 1080;
 //    textureDesc.mipmapLevelCount = 0 ; // 生成Mip贴图的数量
