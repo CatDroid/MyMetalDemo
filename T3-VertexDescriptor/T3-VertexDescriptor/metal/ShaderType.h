@@ -29,9 +29,15 @@
 typedef struct
 {
     vector_float2 pos ;
-    vector_float2 uv ;
-} MyVertex;
+    vector_float2 uv ;  // 按照 2*4 = 8 字节对齐
+    float tangle[3];    // offset = 16   !!!顶点属性 对应的MTLBuffer可以通过VertexDescriptor来描述 所以buffer不用对齐 但是uniform变量,就没有VertexDescriptor 所以要对齐!!!
+    
+} MyVertex;  // sizeof(MyVertex) = 32 
 
-
+typedef struct
+{
+    float myArray[98];
+    vector_float4 addMore;
+} MyUniform;
 
 #endif /* ShaderType_h */

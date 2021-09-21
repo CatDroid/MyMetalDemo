@@ -306,6 +306,7 @@ static const MTLPixelFormat AAPLDepthPixelFormat = MTLPixelFormatDepth32Float; /
     }
 
     [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
+    
 
     [renderEncoder endEncoding];
 

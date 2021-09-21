@@ -114,13 +114,14 @@
 #pragma mark - Render
 -(MTLVertexDescriptor*) loadAsserts:(id<MTLDevice>) gpu
 {
+
     MTLVertexDescriptor* desc = [[MTLVertexDescriptor alloc] init];
     desc.attributes[0].bufferIndex = 0;
     desc.attributes[0].offset = 0;
     desc.attributes[0].format = MTLVertexFormatFloat3; // MTLVertexFormatFloat3 = 30
     
     desc.attributes[1].bufferIndex = 0;
-    desc.attributes[1].offset = 3 * 4;
+    desc.attributes[1].offset = 3 * 4; // vector_float3 是按照16个字节对齐 (4*4) MDLMesh 不用遵守对齐?? MTLVertexDescriptor描述的是提供MTLBuffer的布局信息 
     desc.attributes[1].format = MTLVertexFormatFloat2;
     
     desc.layouts[0].stepFunction = MTLStepFunctionPerVertex;
@@ -133,6 +134,7 @@
     mdlDesc.attributes[0].name = MDLVertexAttributePosition;
     mdlDesc.attributes[1].name = MDLVertexAttributeTextureCoordinate;
     
+    NSLog( @"MyVertex.uv offset %lu ", (unsigned long)&(((MyVertex*)0)->uv) ); // MyVertex.uv offset 16
     
     NSURL* path = [[NSBundle mainBundle] URLForResource:@"Temple" withExtension:@"obj"];
     NSError* error ;

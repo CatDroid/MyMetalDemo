@@ -120,12 +120,18 @@
  #endif
                 
     [command addCompletedHandler:^(id<MTLCommandBuffer> _Nonnull buffer) {
-            
+           
+        // GPU 耗时
+        // CFTimeInterval executionDuration = cb.GPUEndTime - cb.GPUStartTime;
+        //
+        
         __strong typeof(WeakSelf) StrongSelf = WeakSelf;
         if (StrongSelf)
         {
-            [StrongSelf writeFrame:texture];
+            [StrongSelf writeFrame:texture]; // 不是UI和Render线程 线程不固定 -- 调度和完成回调会按照执行顺序，在一个未定义线程上调用
         }
+        // MTLCommandBufferStatusCompleted = 4
+        // NSLog(@"MTLCommandBuffer status = %lu", [buffer status] );
     }];
     
 }

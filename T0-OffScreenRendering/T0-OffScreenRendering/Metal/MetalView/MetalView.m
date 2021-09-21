@@ -7,6 +7,9 @@
 
 #import "MetalView.h"
 
+// 官方demo Creating a Custom Metal View
+// https://developer.apple.com/documentation/metal/drawable_objects/creating_a_custom_metal_view?language=objc
+
 @implementation MetalView
 {
     CADisplayLink * _displayLink;
@@ -121,6 +124,7 @@
 #ifdef RENDER_UI_EVEN_BASE
 
 // 这个由metalayer通过_metalayer.delegate回调的，所以应该是_metalayer
+// 与 drawLayer:inContext: 作用基本相同, 两者只能存一
 -(void) displayLayer:(CALayer *)layer
 {
     // 告诉委托 执行显示过程
@@ -128,6 +132,10 @@
     [self renderOnEvent:layer]; // [CALayer display] 会调用这个
 }
 
+//  在方法内部会呼叫 view 的 drawRect 方法. 当 layer 的内容需要被重载时被呼叫. 比如调用了 setNeedsDisplay() 方法,
+//
+//  但是如果在代理中呼叫了 displayLayer() 的话不会再执行本方法. 两者间只能存一
+//
 -(void) drawLayer:(CALayer *)layer inContext:(CGContextRef)ctx
 {
     // 告诉委托 使用图层的 CGContextRef 实现显示过程  ??? CGContextRef ????
@@ -135,28 +143,39 @@
     [self renderOnEvent:layer];
 }
 
+// 可以让我们在drawLayer: inContext:方法之前对layer进行配置
+//- (void) layerWillDraw:(CALayer *)layer
+//{
+//    NSLog(@"layerWillDraw called");
+//}
+
+//#pragma mark Laying Out Sublayers
+//-(void) layoutSublayersOfLayer:(CALayer *)layer
+//{
+    // 告诉委托 layer的bounds已经改变
+    //
+    // 子类可以重写该方法实现自定义的布局。你的布局实现必须设置好layer下的所有sublayer的frame
+    //
+    // 该方法的默认实现会调用layer的delegate的发送layoutSublayersOfLayer:消息，
+    // 如果layer的delegate为nil，或者delegate未实现layoutSublayersOfLayer:方法，那么系统会像layer的layoutManager对象发送layoutSublayersOfLayer:消息
+    
+  
+//    NSLog(@"layoutSublayersOfLayer called");
+//}
+ 
+// 无论何时一个可动画的 layer 属性改变时，layer 都会寻找并运行合适的 'action' 来实行这个改变。
+// 在 Core Animation 的专业术语中就把这样的动画统称为动作 (action 或者 CAAction)
+// layer 通过向它的 delegate 发送 actionForLayer:forKey: 消息来询问提供一个对应属性变化的 action
+//
+//#pragma mark Providing a Layer's Actions
+//- (id<CAAction>)actionForLayer:(CALayer *)layer forKey:(NSString *)event
+//{
+//    // 提供layer动作??
+//    return [super actionForLayer:layer forKey:event];
+//}
+
 #endif
 
-- (void) layerWillDraw:(CALayer *)layer
-{
-    // 告诉委托 即将drawisplayLayer called
-    NSLog(@"layerWillDraw called");
-}
-
-#pragma mark Laying Out Sublayers
--(void) layoutSublayersOfLayer:(CALayer *)layer
-{
-    // 告诉委托 layer的bounds已经改变
-    NSLog(@"layoutSublayersOfLayer called");
-}
- 
-
-#pragma mark Providing a Layer's Actions
-- (id<CAAction>)actionForLayer:(CALayer *)layer forKey:(NSString *)event
-{
-    // 提供layer动作??
-    return [super actionForLayer:layer forKey:event];
-}
 
 
 #pragma mark - UIView -
@@ -315,6 +334,16 @@
 #pragma mark - notify delegate -
 -(void) _notifyResizeDrawable
 {
+    
+    if (_metalLayer == nil)
+    {
+        NSLog(@"[_notifyResizeDrawable] _metalLayer not ready ");
+        // 在UIView super init的过程中 会走下面的流程, 多次调用本函数
+        // setContentScaleFactor::
+        // setFrame::
+        return ;
+    }
+    
     // 在第一次layout pass? 没有在视图层级树 所以直接用screen的scale  ??
     CGFloat scale = [UIScreen mainScreen].scale;
     
@@ -324,28 +353,28 @@
     UIScreen* screen = window.screen; // window是nil 这里不会崩溃
     CGFloat nativeScale = screen.nativeScale;
     
-    if(window == nil)
+    if (window == nil)
     {
-        nativeScale = scale ;
+        nativeScale = scale ; // 如果view的所属的window存在, 那么就用window所在screen的nativeScale，如果没有的话，就用主窗口的scale
     }
     else
     {
-        NSLog(@"UIWindow is not nil");
+        NSLog(@"[_notifyResizeDrawable] UIWindow is not nil");
     }
    
 
     
-    NSLog(@"_notifyResizeDrawable mainScreen'scale %f, UIWindow'screen'scale %f",
+    NSLog(@"[_notifyResizeDrawable] mainScreen'scale %f, UIWindow'screen'scale %f",
           scale,
           nativeScale);
     
-    CGSize drawableSize = self.bounds.size;
-    drawableSize.width = drawableSize.width * nativeScale;
+    CGSize drawableSize = self.bounds.size; // 这个单位是point
+    drawableSize.width  = drawableSize.width  * nativeScale; // 乘以scale之后才是 像素
     drawableSize.height = drawableSize.height * nativeScale;
     
     if (drawableSize.width <= 0 || drawableSize.height <= 0)
     {
-        NSLog(@"_notifyResizeDrawable newSize negative ");
+        NSLog(@"[_notifyResizeDrawable] newSize negative ");
         return;
     }
     
@@ -358,9 +387,32 @@
         //{
         //    return;
         //} // viewDidMove 到这里 layer已经有drawableSize 并且相等
+       
+        NSLog(@"[_notifyResizeDrawable]  _metalLayer.drawableSize  = (%f, %f) to (%f, %f)",
+              _metalLayer.drawableSize.width,
+              _metalLayer.drawableSize.height,
+              drawableSize.width,
+              drawableSize.height
+               );
+        
+        // 如果不修改Layer 那么Layer的大小会跟View不一样 ---- Layer不会自动的同步View的尺寸
+    
         
         // !!  根据view修改CAMetalLayer的drawable尺寸
-        _metalLayer.drawableSize = drawableSize;
+        
+        //if (_metalLayer.drawableSize.width == 0)
+        //{
+            _metalLayer.drawableSize = drawableSize;
+            // _metalLayer.framebufferOnly
+            // default is YES,  MTLTexture objects with only the MTLTextureUsageRenderTarget usage flag
+            // sample, read from, or write to those textures 必须设置为NO 才可以cpu读 否则只用做显示
+            // 一般不是从View读取 不过这个demo是从View中CAMetalLayer读取
+           
+            // _metalLayer.frame 在父级Layer坐标系中的坐标和大小 ???
+            
+        //}
+       
+        // 内部应该把UI线程这个Change改到渲染线程上 ?? --> 不用 根据官方demo 可以在ui线程和render线程上重建纹理 但是要做互斥保护
         
         [self _resizeDepthTexture];
         
@@ -453,6 +505,24 @@
     _currentRenderPassDescriptor = nil;
     
 }
+
+/*
+ 
+ 超出父视图后点击事件不响应
+ 
+ 在蓝色的View上添加一个Button，Button的上半部分超出了蓝色View的范围，当点击button时，只有点击Button在蓝色View范围内的部分会有响应，超出蓝色View范围的Button对点击事件没有响应
+ 
+ 这主要与iOS的事件分发机制(hit-Testing)有关。
+ 
+ hit-Testing作用是找出点击的是哪一个view，UIView中有两个方法来确定hit-TestView
+
+ - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;//如果在当前view中，就返回该view
+ - (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event;//判断触摸点是否在某个UIView中
+ 备注：hitTest:withEvent中，会调用pointInside:withEvent:，根据后者的结果判断点击的点是否在当前的view中。
+
+ 
+ */
+
 
  
 

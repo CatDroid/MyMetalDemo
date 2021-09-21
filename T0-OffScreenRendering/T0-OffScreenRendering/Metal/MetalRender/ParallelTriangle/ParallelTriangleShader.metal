@@ -25,7 +25,7 @@ vertex VertexOut MyVertexShader(
 {
     VertexOut out ;
     
-    float4 pos = float4(vertexes[vid].pos, 0.0, 1.0); // 深度buffer默认是1.0 0.0是最前 深度buffer从0到1 0是接近观察者/摄像机
+    float4 pos = float4(vertexes[vid].pos, 0.1, 1.0); // 深度buffer默认是1.0 0.0是最前 深度buffer从0到1 0是接近观察者/摄像机
     
     out.pos = pos ;
     

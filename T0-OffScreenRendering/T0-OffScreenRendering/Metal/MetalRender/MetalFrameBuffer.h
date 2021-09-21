@@ -7,7 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
-#import <UIKit/UIKit.h> // CGSize
+#import <CoreGraphics/CoreGraphics.h> // CGSize
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -16,6 +16,12 @@ NS_ASSUME_NONNULL_BEGIN
 -(instancetype) init NS_UNAVAILABLE ;
 
 -(instancetype) initWithDevice:(id<MTLDevice>)gpu WithSize:(CGSize)size  NS_DESIGNATED_INITIALIZER ; // 指定构造函数
+
+-(void) firstDrawOnEncoder ;
+
+-(void) keepDrawOnAnotherEncoder ;
+
+-(void) lastDrawEncoder ;
 
 @property (strong, nonnull, nonatomic, readonly) MTLRenderPassDescriptor* renderPassDescriptor;
 

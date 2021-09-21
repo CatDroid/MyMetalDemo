@@ -101,6 +101,7 @@ NS_ASSUME_NONNULL_BEGIN
  * -------------------------------- 类似MTKViewDelegate代理 ----------------------------------
  */
 
+// 仿照 @protocol MTKViewDelegate 提供两个接口 一个是draw 一个是resize 
 @protocol MetalViewDelegate <NSObject>
 
 -(void) OnDrawableSizeChange:(CGSize)size WithView:(MetalView*) view;
