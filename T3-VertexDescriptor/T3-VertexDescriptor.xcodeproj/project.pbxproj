@@ -330,7 +330,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "hanlonn.T3-VertexDescriptor";
+				PRODUCT_BUNDLE_IDENTIFIER = MyMetalDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -348,7 +348,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "hanlonn.T3-VertexDescriptor";
+				PRODUCT_BUNDLE_IDENTIFIER = MyMetalDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

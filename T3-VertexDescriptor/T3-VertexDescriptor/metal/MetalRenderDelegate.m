@@ -650,9 +650,32 @@
     // [encoder setVertexTexture:(nullable id<MTLTexture>) atIndex:] // 顶点着色器也可以有纹理
     [encoder setFragmentTexture:_texture atIndex:0];
     
-    MTLViewport port = { 100, 200, 300, 400, 0.0, 1.0}; // 0,0 是左上角 
-    [encoder setViewport:port]; // view port 默认 zNear是0 zFar是1.0
+    // MTLViewport port = { 100, 200, 300, 400, 0.0, 1.0}; // 0,0 是左上角
+    // [encoder setViewport:port]; // view port 默认 zNear是0 zFar是1.0
     
+    //NSUInteger targetWidth  = view.currentRenderPassDescriptor.renderTargetWidth; // 0
+    //NSUInteger targetHeight = view.currentRenderPassDescriptor.renderTargetHeight;// 0
+    // view.frame
+     
+    //NSLog(@"targetWidth = %llu targetHeight = %llu", targetWidth, targetHeight);
+    
+    MTLViewport port = { -20, -40, 200, 300, 0.0, 1.0};
+    
+    [encoder setViewport:port]; // viewPort.x 是 有符号的float
+    
+	/*
+	MTLScissorRect rec;
+	// rec.x = -30; 				// 裁剪区域是非负数的 NSUInteger x,y
+	// rec.y = -90; // 编译运行ok 但是效果错
+	rec.x = -200;
+	rec.y = 0 ;
+	rec.width = 1000; // render pass with = 828 这里配置成 x=-200 + width = 1000 也可以~~ 但是没有图案出来了
+	rec.height = 400;
+	[encoder setScissorRect:rec];
+	// 不能超过 render pass/fbo的尺寸
+	// failed assertion `(rect.x(0) + rect.width(2000))(2000) must be <= render pass width(828)'
+	*/
+	
     /*
      
      Argument Tables就是各种资源的列表，
