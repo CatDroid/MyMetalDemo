@@ -104,7 +104,8 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     
     _captureSession = [[AVCaptureSession alloc] init];
     _captureSession.sessionPreset = AVCaptureSessionPreset1920x1080;// 使用preset预置。1920x1080的配置。1920是长边
-    
+	//_captureSession.sessionPreset =  AVCaptureSessionPresetPhoto;
+	
     // 串行队列
     _captureQueue = dispatch_queue_create("preview queue", DISPATCH_QUEUE_SERIAL);
     
@@ -116,7 +117,7 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     // 搜索设备  AVCaptureDeviceDiscoverySession
     AVCaptureDevice* inputCamera = nil;
     
-    // 'devicesWithMediaType:' is deprecated: f
+    // 'devicesWithMediaType:' is deprecated:
 //    NSArray<AVCaptureDevice*>* cameras = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
 //    for (AVCaptureDevice* camera in cameras)
 //    {
@@ -162,6 +163,29 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
 //                                        position:AVCaptureDevicePositionBack];
     
     NSAssert(inputCamera != nil, @"Find Camera Fail");
+	
+	
+	// NSGenericException
+	// [AVCaptureDevice setActiveColorSpace:]
+	// 在第一次 通过lockForConfiguration 成功地 获取 排他性控制权 之前 不能被调用
+	// inputCamera.activeColorSpace = AVCaptureColorSpace_sRGB;
+	//
+
+	// iOS 摄像头采集; 420v（VideoRange）和420f（FullRange）的区别: 亮度和色差取值范围不一样 video只有 Y 16~235 UV 16~240
+	// iOS 没有使用传统的 YUV，而是使用 YCbCr; YUV 和 YCbCr 的差异点，两者数据的标准不一样，YCbCr 有 ITU - R BT.601 & ITU - R BT.709 两个标准
+	//
+	// 对于420f支持 sRGB/P3
+	// 对于420v只支持 sRGB
+	// NSArray<AVCaptureDeviceFormat *>* formats = [inputCamera formats]  ;
+	//[formats enumerateObjectsUsingBlock:^(AVCaptureDeviceFormat * _Nonnull format, NSUInteger idx, BOOL * _Nonnull stop) {
+	//		NSLog(@"support AVCaptureDeviceFormat mediaType %@ colorspaces = %@", format.mediaType, format.supportedColorSpaces); // 支持的颜色空间sRGB P3 HLG
+	//}];
+	
+	// AVCaptureColorSpace_sRGB
+	// AVCaptureColorSpace_P3_D65 // P3 色域  10bit P3
+	// AVCaptureColorSpace_HLG_BT2020
+	//
+	// 所有设备都支持sRGB颜色空间 有些设备和格式支持P3颜色空间 具有更广的色域
     
     
     // 打开设备
@@ -184,6 +208,20 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     _videoDataOutput = [[AVCaptureVideoDataOutput alloc] init];
     // AVCaptureAudioDataOutput
     // AVCaptureDepthDataOutput // 摄像头输出场景深度信息
+	
+	NSArray<NSNumber*>* videoOutputFormats = [_videoDataOutput availableVideoCVPixelFormatTypes];
+	[videoOutputFormats enumerateObjectsUsingBlock:^(NSNumber * _Nonnull num, NSUInteger idx, BOOL * _Nonnull stop) {
+			OSType type = num.unsignedIntValue;
+			uint8_t* fourcc = (uint8_t*) &type ;
+			if (type == kCVPixelFormatType_32BGRA ||
+				type == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange ||
+				type == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange) {
+				NSLog(@"视频输出 只能RGBA或者Full/VideoRange的NV12 %c%c%c%c",fourcc[3],fourcc[2],fourcc[1],fourcc[0]);
+			} else {
+				NSLog(@"视频输出其他格式 %c%c%c%c",fourcc[3],fourcc[2],fourcc[1],fourcc[0]);
+			}
+	}];
+	
     /*
      YES 当调度队列处理已存在帧并卡在captureOutput:didOutputSampleBuffer:fromConnection:deleget方法时候 立刻丢弃当前捕捉的视频帧
      NO  在丢弃新帧之前，会给委托提供更多时间来处理旧帧，但应用程序内存使用量可能因此显着增加。
@@ -199,11 +237,16 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     //设置视频捕捉输出代理方法
     [_videoDataOutput setSampleBufferDelegate:self queue:_captureQueue];
     
+	// 输出pixel buffer的属性配置 (摄像头输出的CVPixelBuffer要兼容Metal 在MacOS上正常 ios上有warning)
+	// https://stackoverflow.com/questions/46549906/cvmetaltexturecachecreatetexturefromimage-returns-6660-on-macos-10-13
+	// iphone xr 14.01 会报警告  videoSettings dictionary contains one or more unsupported (ignored) keys: MetalCompatibility
     NSDictionary* options = @{
        // kCVPixelFormatType_ARGB2101010LEPacked A 2 R 10 G 10 B 10
-        (__bridge NSString*)kCVPixelBufferPixelFormatTypeKey :  @(kCVPixelFormatType_32BGRA)
+        (__bridge NSString*)kCVPixelBufferPixelFormatTypeKey :  @(kCVPixelFormatType_32BGRA),// 没有sRGB的选择这里
+		(__bridge NSString*)kCVPixelBufferMetalCompatibilityKey : @(YES), // 没有这个也是ok的??  当配置AVCaptureVideoDataOutput时候 请求Metal兼容
     };
     [_videoDataOutput setVideoSettings:options];
+	 
     
     // 数据输出加入到session
     if ([_captureSession canAddOutput:_videoDataOutput])
@@ -260,11 +303,22 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
         
     }
     
-
-    
+	NSLog(@"自动选择更广的P3颜色空间 %s", _captureSession.automaticallyConfiguresCaptureDeviceForWideColor?"YES":"NO");
+	
+	
+	// 这样才能设置为P3色域
+	// [_captureSession setAutomaticallyConfiguresCaptureDeviceForWideColor:false];
+	// [inputCamera lockForConfiguration:NULL];
+	// inputCamera.activeColorSpace = AVCaptureColorSpace_P3_D65;
+	// [inputCamera unlockForConfiguration];
+	
+	
     // 到这里 Capture会话的输入(设备 back)和输出(格式 bgra32)都已经设置好
     [_captureSession startRunning]; // 开始预览
     
+	NSLog(@"开始预览, 格式为 %@ 颜色空间为 %ld", [inputCamera activeFormat], (long)[inputCamera activeColorSpace]); // 默认情况是colorSpace=sRGB ??? 没有选P3
+ 
+	
     return YES;
 }
 
@@ -333,6 +387,7 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     CVPixelBufferRef pixelBuffer = imageBuffer;
     size_t width = CVPixelBufferGetWidth(pixelBuffer);
     size_t height = CVPixelBufferGetHeight(pixelBuffer);
+	
    
     // 创建CoreVideo的Metal纹理缓存
     CVMetalTextureRef tmpTexture = NULL;
@@ -345,7 +400,8 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
                                                                 _textureCache,
                                                                 pixelBuffer, // 会增加引用计数
                                                                 nil,
-                                                                MTLPixelFormatBGRA8Unorm,
+                                                                MTLPixelFormatBGRA8Unorm_sRGB,
+																//MTLPixelFormatBGRA8Unorm, // 这个会偏白色 摄像头输出一般是sRGB 或者P3??(广域10bits) sRGB是gamma0.45把暗的部分扩大(曲线是上凸) 导致直接当做线性来看 就会变白了
                                                                 width,
                                                                 height,
                                                                 0,
