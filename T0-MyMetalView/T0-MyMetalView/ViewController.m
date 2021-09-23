@@ -15,7 +15,7 @@
 {
     MTKViewDelegateRender* _render ;
     
-    CAMetalLayer* renderLayer;
+    CAMetalLayer* _renderLayer;
     CADisplayLink *displayLink;
 }
 
@@ -26,7 +26,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
    
-    [self setupLayer];
+	_renderLayer = [self setupLayer];
     
     
     // MTKView 类提供了Metal-aware视图的默认实现，您可以使用它来使用Metal渲染图形并在屏幕上显示它们
@@ -40,8 +40,9 @@
     
     //MTKView* _view = (MTKView*)self.view ; // storyboard's view custom class is MTKView
     
+	// 这里直接在UIView上插入CAMetalLayer!!
     
-    _render = [[MTKViewDelegateRender alloc] initWithCALayer:renderLayer];
+    _render = [[MTKViewDelegateRender alloc] initWithCALayer:_renderLayer];
     
     
 
@@ -51,7 +52,7 @@
 // https://developer.apple.com/documentation/metal/drawable_objects/creating_a_custom_metal_view?language=objc
 
 
--(void) setupLayer
+-(CAMetalLayer*) setupLayer
 {
     id<MTLDevice> device = MTLCreateSystemDefaultDevice();
     
@@ -59,7 +60,7 @@
      CAMetalLayer的父类是CALayer
      当要使用metal来渲染/绘制某个图层的内容(layer's content)时候,比如渲染到View中,就要创建CAMetalLayer
      */
-    renderLayer = [CAMetalLayer layer];
+	CAMetalLayer*  renderLayer = [CAMetalLayer layer];
     renderLayer.device = device;
     renderLayer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB; // ??? sRGB和非sRGB区别 
     
@@ -73,7 +74,7 @@
     // 当您为此属性分配新值时，图层会更改其位置和边界属性以匹配您指定的帧矩形框
     // 帧矩形框中每个坐标的值以“点”为单位进行测量。
     // 如果 transform 属性应用的旋转变换不是 90 度的倍数，则不要设置框架
-    renderLayer.frame = self.view.layer.frame;
+    renderLayer.frame = self.view.layer.frame; // CALayer的属性 
 
     // 默认情况下，图层创建的纹理大小与其内容相匹配
     // 也就是说，此属性的值是图层的 边界大小 乘以 其内容比例因子
@@ -140,12 +141,13 @@
     // (UIScreen*)screen
     // _displayLink = [screen displayLinkWithTarget:self selector:@selector(render)];
     
+	return renderLayer;
 }
 
 // CADisplayLink 在 NSRunLoop currentRunLoop 中回调
 - (void)render:(CADisplayLink *)sender;
 {
-    [_render drawWithLayer:renderLayer];
+    [_render drawWithLayer:_renderLayer];
     
 }
 
