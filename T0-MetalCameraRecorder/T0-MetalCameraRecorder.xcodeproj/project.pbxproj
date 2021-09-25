@@ -21,6 +21,7 @@
 		B05EC935268858F000293499 /* ScreenShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B05EC92F268858F000293499 /* ScreenShader.metal */; };
 		B05EC936268858F000293499 /* ScreenMesh.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC931268858F000293499 /* ScreenMesh.m */; };
 		B05EC937268858F000293499 /* ScreenRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC934268858F000293499 /* ScreenRender.m */; };
+		B08C010A26D7BA75009E018A /* CVPixelBufferPoolReader.m in Sources */ = {isa = PBXBuildFile; fileRef = B08C010926D7BA75009E018A /* CVPixelBufferPoolReader.m */; };
 		B0EABC9A268995AA00F6C5E0 /* CameraRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B0EABC99268995AA00F6C5E0 /* CameraRender.m */; };
 		B0EABC9F26899DE300F6C5E0 /* MetalCameraDevice.m in Sources */ = {isa = PBXBuildFile; fileRef = B0EABC9E26899DE300F6C5E0 /* MetalCameraDevice.m */; };
 		B0EABCA32689C64B00F6C5E0 /* CameraShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B0EABCA22689C64B00F6C5E0 /* CameraShader.metal */; };
@@ -55,6 +56,8 @@
 		B05EC932268858F000293499 /* ScreenRender.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScreenRender.h; sourceTree = "<group>"; };
 		B05EC933268858F000293499 /* ScreenMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScreenMesh.h; sourceTree = "<group>"; };
 		B05EC934268858F000293499 /* ScreenRender.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScreenRender.m; sourceTree = "<group>"; };
+		B08C010826D7BA75009E018A /* CVPixelBufferPoolReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CVPixelBufferPoolReader.h; sourceTree = "<group>"; };
+		B08C010926D7BA75009E018A /* CVPixelBufferPoolReader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CVPixelBufferPoolReader.m; sourceTree = "<group>"; };
 		B0EABC98268995AA00F6C5E0 /* CameraRender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CameraRender.h; sourceTree = "<group>"; };
 		B0EABC99268995AA00F6C5E0 /* CameraRender.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CameraRender.m; sourceTree = "<group>"; };
 		B0EABC9D26899DE300F6C5E0 /* MetalCameraDevice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MetalCameraDevice.h; sourceTree = "<group>"; };
@@ -147,6 +150,8 @@
 				B0EABFE9268A1DF500F6C5E0 /* RecordShaderType.h */,
 				B0EABFEA268A1E3900F6C5E0 /* RecordRender.h */,
 				B0EABFEB268A1E3900F6C5E0 /* RecordRender.m */,
+				B08C010826D7BA75009E018A /* CVPixelBufferPoolReader.h */,
+				B08C010926D7BA75009E018A /* CVPixelBufferPoolReader.m */,
 			);
 			path = MetalRecorder;
 			sourceTree = "<group>";
@@ -253,6 +258,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B08C010A26D7BA75009E018A /* CVPixelBufferPoolReader.m in Sources */,
 				B05EC936268858F000293499 /* ScreenMesh.m in Sources */,
 				B05EC9092688513100293499 /* ViewController.m in Sources */,
 				B0EABC9A268995AA00F6C5E0 /* CameraRender.m in Sources */,

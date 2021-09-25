@@ -32,6 +32,8 @@
     NSTimeInterval recordingStartTime ;
     
     RecordRender* recorderRender ;
+	
+	int counter ;
 }
 
 
@@ -79,6 +81,7 @@
                                (__bridge NSString*)(kCVPixelBufferPixelFormatTypeKey):@(kCVPixelFormatType_32BGRA), // 为什么这么喜欢BGRA
                                (__bridge NSString*)(kCVPixelBufferWidthKey):@(size.width),
                                (__bridge NSString*)(kCVPixelBufferHeightKey):@(size.height),
+							   (__bridge NSString*)(kCVPixelBufferMetalCompatibilityKey):@(YES) // 需要CoreVideo得到Metal兼容的PixelBuffer 好像不设置也没有问题??
     };
     
     assetWriterPixelBufferInput = [[AVAssetWriterInputPixelBufferAdaptor alloc] initWithAssetWriterInput:assetWriterVideoInput sourcePixelBufferAttributes:attributes];
@@ -108,7 +111,7 @@
 {
     if (!self.isRecording)
     {
-        NSLog(@"recording stopped y");
+        NSLog(@"recording stopped yet");
         return  ;
     }
     self.isRecording = false ;
@@ -139,6 +142,7 @@
         return ;
     }
     
+	 
     CVPixelBufferRef pixelBufferOut;
     CVReturn status = CVPixelBufferPoolCreatePixelBuffer(nil, cvPixelBufferPool , &pixelBufferOut);
     if (status != kCVReturnSuccess)
@@ -146,7 +150,19 @@
         NSLog(@"CVPixelBufferPool Could not get pixel buffer from asset writer input; dropping frame...");
         return ;
     }
-    
+	// NSLog(@"---- pixelBufferOut %lu, %p ", (CFGetRetainCount(pixelBufferOut)), pixelBufferOut); // 1   只要CVBufferRelease之后  会重复使用 CVPixelBufferRef
+	
+	int cnt = counter ; // 用来标记下一帧和渲染完
+	counter++ ;
+	
+//	NSLog(@"---- pixelBufferOut %lu, %p iosurface %lu %p counter %d",
+//		  (CFGetRetainCount(pixelBufferOut)),
+//		  pixelBufferOut,
+//		  (CFGetRetainCount(CVPixelBufferGetIOSurface(pixelBufferOut))),
+//		  CVPixelBufferGetIOSurface(pixelBufferOut),
+//		  cnt);
+	// 不同的PixelBuffer IOSUrface都可能一样
+	// 只要CVBufferRelease没有调用的话 iosurface就会不一样, 释放了之后iosurface会被重用
     
     id<MTLTexture> renderTarget = [self pixelBufferToMTLTexture:pixelBufferOut];
     
@@ -157,17 +173,19 @@
     CMTime presentationTimeInSecond = CMTimeMakeWithSeconds(timestampInSecond  , 240); // 时间戳*240
         
     __weak typeof(self) WeakSelf = self ;
+	
 
     [command addCompletedHandler:^(id<MTLCommandBuffer> _Nonnull buffer) {
 
         __strong typeof(WeakSelf) StrongSelf = WeakSelf;
-        NSLog(@"pixelBufferOut %lu, %p ", (CFGetRetainCount(pixelBufferOut)), pixelBufferOut);
+        // NSLog(@"pixelBufferOut %lu, %p counter %d", (CFGetRetainCount(pixelBufferOut)), pixelBufferOut, cnt);
         if (StrongSelf)
         {
             [StrongSelf->assetWriterPixelBufferInput appendPixelBuffer:pixelBufferOut withPresentationTime:presentationTimeInSecond];
         }
         CVBufferRelease(pixelBufferOut);
-
+		// CVBufferRelease  如果注释这个, 可以测试到IOSurface不一样, 并且可以看到 iosurface 每个都是1;
+		// 					如果不注释 释放掉渲染速度够快 那么 CVPixelBufferPoolCreatePixelBuffer返回的IOSurface 可能是同一个   并且IOSurface计数为3
 
     }];
    
@@ -193,7 +211,21 @@
     CVMetalTextureRef metalTextureRef;
     
     // Creates a Core Video Metal texture buffer from an existing image buffer.
-    // 根据存在的 imagebuffer/pixelbuffer 来创建一个Metal texture
+    // 根据存在的 imagebuffer/pixelbuffer(由IOSurface buffer来实现) 来创建一个Metal texture
+	// 建立了 Metal texture 和 给定pixelbuffer的映射/live binding
+	// 增加 给定的 pixelBuffer 的引用计数 但没有增加 pixelBuffer内部的 IOSurface buffer 的引用计数
+	// 但是 Metal texture 需要拥有 IOSurface buffer
+	// 因此 必须自己强引用 pixelBuffer 或者 Metal texture 在metal渲染完毕之前
+	
+	// CVPixelBufferCreateWithIOSurface 根据一个IOSurface来创建pixel buffer
+	// 返回的CVPixelBuffer实例会持有IOSurface
+	// 如果使用 IOSurface 在进程之间共享 CVPixelBuffers，并且这些 CVPixelBuffers 是通过 CVPixelBufferPool 分配的话,
+	// CVPixelBufferPool不会复用IOSurface依旧在被其他进程使用中的CVPixelBuffer
+	
+	IOSurfaceRef ioSurface = CVPixelBufferGetIOSurface(pixelBuffer);
+	//NSLog(@"//// ioSurface %lu, %p", (CFGetRetainCount(ioSurface)), ioSurface); // 1 如果CVPixelBuffer回收够快 这个也是3 估计是有MTLTexture还在引用??
+	//NSLog(@"//// pixelBufferOut %lu, %p ", (CFGetRetainCount(pixelBuffer)), pixelBuffer); // 1
+	
     CVReturn result = CVMetalTextureCacheCreateTextureFromImage(nil,
                                                                 _textureCache,
                                                                 pixelBuffer,
@@ -203,13 +235,26 @@
                                                                 height,
                                                                 0,
                                                                 &metalTextureRef);
+	
+	//NSLog(@"**** pixelBufferOut %lu, %p ", (CFGetRetainCount(pixelBuffer)), pixelBuffer); // ???? 这个还是 1 没有增加ImageBuffer计数
+	//NSLog(@"**** ioSurface %lu, %p", (CFGetRetainCount(ioSurface)), ioSurface); // ???? 3 这样就增加了两个引用计数了
+	
     if (result == kCVReturnSuccess)
     {
         // 返回这个image buffer 对应的MTLTexture
-        texture = CVMetalTextureGetTexture(metalTextureRef); // 由ARC自动释放
+		// NSLog(@"1111 metalTextureRef %lu, %p", (CFGetRetainCount(metalTextureRef)), metalTextureRef); // 1
+        texture = CVMetalTextureGetTexture(metalTextureRef); // 由ARC自动释放  OC对象和CF对象转换而已
+		// NSLog(@"2222 metalTextureRef %lu, %p", (CFGetRetainCount(metalTextureRef)), metalTextureRef); // 1
         
+		// NSLog(@"3333 texture %lu ", CFGetRetainCount((__bridge CFTypeRef)(texture))); // 2 ;
+	 
+		
+		// NSLog(@"vvvv ioSurface %lu, %p", (CFGetRetainCount(ioSurface)), ioSurface); // 3
+		
         CVBufferRelease(metalTextureRef); // 必须释放 CVMetalTextureCacheCreateTextureFromImage 返回 CVMetalTextureRef 的引用
         
+		// NSLog(@"xxxx ioSurface %lu, %p", (CFGetRetainCount(ioSurface)), ioSurface); // 3
+		
         /*
          ------ ------ ------ ------ ------ ------
             使用Xcode-Instruments-Leaks
@@ -285,6 +330,10 @@
          
          */
     }
+	else
+	{
+		NSLog(@"Metal纹理池,已经满了");
+	}
     
     
     /*

@@ -62,6 +62,8 @@
                                (__bridge NSString*)(kCVPixelBufferWidthKey):@(size.width),
                                (__bridge NSString*)(kCVPixelBufferHeightKey):@(size.height),
     };
+	// kCVPixelBufferOpenGLESCompatibilityKey
+	// kCVPixelBufferMetalCompatibilityKey
     
     assetWriterPixelBufferInput = [[AVAssetWriterInputPixelBufferAdaptor alloc] initWithAssetWriterInput:assetWriterVideoInput sourcePixelBufferAttributes:attributes];
     
@@ -180,7 +182,7 @@
     MTLRegion region =  MTLRegionMake2D(0, 0, texture.width, texture.height);
     
     //[texture getBytes:pixelBufferOut bytesPerRow:bytesPerRow fromRegion:region mipmapLevel:0];
-    [texture getBytes:bufferAddress bytesPerRow:bytesPerRow fromRegion:region mipmapLevel:0];
+    [texture getBytes:bufferAddress bytesPerRow:bytesPerRow fromRegion:region mipmapLevel:0]; // 类似glReadPixel的方式 但是是渲染完毕后读取 
     // Returns the current absolute time, in seconds.
     CFTimeInterval timestampInSecond = CACurrentMediaTime() - recordingStartTime;
     CMTime presentationTimeInSecond = CMTimeMakeWithSeconds(timestampInSecond  , 240); // 时间戳*240
