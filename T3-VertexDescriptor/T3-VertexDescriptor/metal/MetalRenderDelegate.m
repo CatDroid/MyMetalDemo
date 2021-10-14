@@ -431,14 +431,17 @@
    
                         if (dataType == MTLDataTypeArray) // 数组类型
                         {
-                            NSLog(@"struct element : %@ is array, element type : %lu, array size : %lu, ",
+                            NSLog(@"struct element : %@ is array, element type : %lu, array size : %lu, array stride: %lu, argumentIndexStride %lu ",
                                   structMember.name,
                                   structMember.arrayType.elementType,
-                                  structMember.arrayType.arrayLength
+                                  structMember.arrayType.arrayLength,
+								  structMember.arrayType.stride, // 元素之间的对齐 The stride between array elements, in bytes.
+								  structMember.arrayType.argumentIndexStride // 结构体之间的对齐 ??? The stride, in bytes, between argument indices.
                                   );
                             //  floatArray is array, element type is 3, array size is 100, offset = 0
                         }
                          
+						
                         // struct element : myArray type : 2 offset : 0
                         // struct element : myArray is array, element type : 3, array size : 98,
                         // struct element : addMore type : 6 offset : 400
