@@ -18,6 +18,8 @@
     id<MTLTexture>          _texture ;
     
     id<MTLCommandQueue>     _commandQueue ;
+	
+	id<MTLCaptureScope> myCaptureScope;
 }
 
 
@@ -231,6 +233,12 @@
     
     
     _commandQueue = [device newCommandQueue];
+	
+	
+	MTLCaptureManager *sharedCaptureManager = [MTLCaptureManager sharedCaptureManager];
+	myCaptureScope = [sharedCaptureManager newCaptureScopeWithDevice:device];
+	myCaptureScope.label = @"My Capture Scope";
+	// sharedCaptureManager.defaultCaptureScope = myCaptureScope;
 }
 
 -(void) processArgument:(MTLRenderPipelineReflection*) reflection
@@ -619,6 +627,8 @@
         NSLog(@"newTextureWithContentsOfURL fail with %@ ", error);
     }
     
+	
+	_texture.label = @"MyTextureTag";
      
 }
 
@@ -632,8 +642,25 @@
 
 -(void) drawInMTKView:(MTKView *)view
 {
+	[myCaptureScope beginScope];
+	
     id<MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
     
+	// At least one command buffer must be created and committed within the boundaries of a GPU Capture.
+	// capture的开始必须在create之前
+	// [myCaptureScope beginScope];
+	
+	MTLClearColor old =  view.currentRenderPassDescriptor.colorAttachments[0].clearColor  ;
+	view.currentRenderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 1.0, 1.0);
+	view.clearColor = MTLClearColorMake(0.0, 0.0, 1.0, 1.0);
+	id<MTLRenderCommandEncoder> encoder1 = [commandBuffer renderCommandEncoderWithDescriptor:view.currentRenderPassDescriptor];
+	encoder1.label = @"MyEncoder";
+	[encoder1 endEncoding];
+	
+	view.currentRenderPassDescriptor.colorAttachments[0].clearColor   = old;
+	view.clearColor = old ;
+	
+	
     id<MTLRenderCommandEncoder> encoder = [commandBuffer renderCommandEncoderWithDescriptor:view.currentRenderPassDescriptor];
     // _depthStencilState
     // _renderPipelineState
@@ -666,6 +693,8 @@
     
     [encoder setViewport:port]; // viewPort.x 是 有符号的float
     
+	
+	
 	/*
 	MTLScissorRect rec;
 	// rec.x = -30; 				// 裁剪区域是非负数的 NSUInteger x,y
@@ -709,6 +738,10 @@
     [commandBuffer presentDrawable:view.currentDrawable];
     
     [commandBuffer commit];
+	
+	// At least one command buffer must be created and committed within the boundaries of a GPU Capture.
+	// capture的范围内必须包含create和end
+	[myCaptureScope endScope];
 }
 
 
