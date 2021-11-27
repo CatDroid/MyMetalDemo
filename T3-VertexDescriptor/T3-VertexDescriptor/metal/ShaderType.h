@@ -36,8 +36,14 @@ typedef struct
 
 typedef struct
 {
-    float myArray[98];
+    float myArray[98]; // type : 2 (MTLDataTypeArray  = 2)  offset : 0   element type : 3(MTLDataTypeFloat  = 3), array size : 98, 
     vector_float4 addMore;
+#ifdef __METAL_VERSION__
+	float2 array2[2]; // type : 2  offset : 416  element type : 4(MTLDataTypeFloat2 = 4), array size : 2, array stride: 8(每个数组元素按照8字节对齐就可以 2*4=8 ), argumentIndexStride 0
+#else
+	vector_float2 array2[2];
+#endif
+	float endone;
 } MyUniform;
 
 #endif /* ShaderType_h */
