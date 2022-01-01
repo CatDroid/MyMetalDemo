@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B066C528275238A300CCB820 /* MemoryScribble.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B066C526275238A300CCB820 /* MemoryScribble.cpp */; };
+		B066C52F2752765F00CCB820 /* fishhook.c in Sources */ = {isa = PBXBuildFile; fileRef = B066C52E2752765F00CCB820 /* fishhook.c */; };
+		B066C533275355A900CCB820 /* MemoryGuard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B066C531275355A900CCB820 /* MemoryGuard.cpp */; };
 		B0BA7B432679E0190041612A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7B422679E0190041612A /* AppDelegate.m */; };
 		B0BA7B462679E0190041612A /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7B452679E0190041612A /* SceneDelegate.m */; };
 		B0BA7B492679E0190041612A /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7B482679E0190041612A /* ViewController.m */; };
@@ -14,11 +17,17 @@
 		B0BA7B4E2679E01A0041612A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0BA7B4D2679E01A0041612A /* Assets.xcassets */; };
 		B0BA7B512679E01A0041612A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B0BA7B4F2679E01A0041612A /* LaunchScreen.storyboard */; };
 		B0BA7B542679E01A0041612A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7B532679E01A0041612A /* main.m */; };
-		B0BA7B5F2679E8D30041612A /* MTKViewDelegateRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7B5E2679E8D30041612A /* MTKViewDelegateRender.m */; };
+		B0BA7B5F2679E8D30041612A /* MTKViewDelegateRender.mm in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7B5E2679E8D30041612A /* MTKViewDelegateRender.mm */; };
 		B0BA7B68267A40E10041612A /* MyShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B0BA7B622679FA4C0041612A /* MyShader.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B066C526275238A300CCB820 /* MemoryScribble.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MemoryScribble.cpp; sourceTree = "<group>"; };
+		B066C527275238A300CCB820 /* MemoryScribble.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MemoryScribble.hpp; sourceTree = "<group>"; };
+		B066C52D2752765F00CCB820 /* fishhook.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fishhook.h; sourceTree = "<group>"; };
+		B066C52E2752765F00CCB820 /* fishhook.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fishhook.c; sourceTree = "<group>"; };
+		B066C531275355A900CCB820 /* MemoryGuard.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MemoryGuard.cpp; sourceTree = "<group>"; };
+		B066C532275355A900CCB820 /* MemoryGuard.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MemoryGuard.hpp; sourceTree = "<group>"; };
 		B0BA7B3E2679E0190041612A /* T1-Triangle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "T1-Triangle.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0BA7B412679E0190041612A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		B0BA7B422679E0190041612A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -32,7 +41,7 @@
 		B0BA7B522679E01A0041612A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B0BA7B532679E01A0041612A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		B0BA7B5D2679E8D30041612A /* MTKViewDelegateRender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MTKViewDelegateRender.h; sourceTree = "<group>"; };
-		B0BA7B5E2679E8D30041612A /* MTKViewDelegateRender.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MTKViewDelegateRender.m; sourceTree = "<group>"; };
+		B0BA7B5E2679E8D30041612A /* MTKViewDelegateRender.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MTKViewDelegateRender.mm; sourceTree = "<group>"; };
 		B0BA7B622679FA4C0041612A /* MyShader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MyShader.metal; sourceTree = "<group>"; };
 		B0BA7B65267A18E30041612A /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -48,6 +57,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B066C5252752385200CCB820 /* cpp */ = {
+			isa = PBXGroup;
+			children = (
+				B066C526275238A300CCB820 /* MemoryScribble.cpp */,
+				B066C527275238A300CCB820 /* MemoryScribble.hpp */,
+				B066C531275355A900CCB820 /* MemoryGuard.cpp */,
+				B066C532275355A900CCB820 /* MemoryGuard.hpp */,
+			);
+			path = cpp;
+			sourceTree = "<group>";
+		};
+		B066C52C2752763000CCB820 /* fishhook */ = {
+			isa = PBXGroup;
+			children = (
+				B066C52E2752765F00CCB820 /* fishhook.c */,
+				B066C52D2752765F00CCB820 /* fishhook.h */,
+			);
+			path = fishhook;
+			sourceTree = "<group>";
+		};
 		B0BA7B352679E0190041612A = {
 			isa = PBXGroup;
 			children = (
@@ -67,6 +96,8 @@
 		B0BA7B402679E0190041612A /* T1-Triangle */ = {
 			isa = PBXGroup;
 			children = (
+				B066C52C2752763000CCB820 /* fishhook */,
+				B066C5252752385200CCB820 /* cpp */,
 				B0BA7B5C2679E80C0041612A /* metal */,
 				B0BA7B412679E0190041612A /* AppDelegate.h */,
 				B0BA7B422679E0190041612A /* AppDelegate.m */,
@@ -87,7 +118,7 @@
 			isa = PBXGroup;
 			children = (
 				B0BA7B5D2679E8D30041612A /* MTKViewDelegateRender.h */,
-				B0BA7B5E2679E8D30041612A /* MTKViewDelegateRender.m */,
+				B0BA7B5E2679E8D30041612A /* MTKViewDelegateRender.mm */,
 				B0BA7B622679FA4C0041612A /* MyShader.metal */,
 				B0BA7B65267A18E30041612A /* ShaderTypes.h */,
 			);
@@ -165,9 +196,12 @@
 			files = (
 				B0BA7B68267A40E10041612A /* MyShader.metal in Sources */,
 				B0BA7B492679E0190041612A /* ViewController.m in Sources */,
-				B0BA7B5F2679E8D30041612A /* MTKViewDelegateRender.m in Sources */,
+				B066C528275238A300CCB820 /* MemoryScribble.cpp in Sources */,
+				B066C533275355A900CCB820 /* MemoryGuard.cpp in Sources */,
+				B0BA7B5F2679E8D30041612A /* MTKViewDelegateRender.mm in Sources */,
 				B0BA7B432679E0190041612A /* AppDelegate.m in Sources */,
 				B0BA7B542679E01A0041612A /* main.m in Sources */,
+				B066C52F2752765F00CCB820 /* fishhook.c in Sources */,
 				B0BA7B462679E0190041612A /* SceneDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -228,7 +262,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -249,6 +283,11 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-fsanitize=integer-divide-by-zero",
+					"-fsanitize=float-divide-by-zero",
+				);
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -301,6 +340,11 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-fsanitize=integer-divide-by-zero",
+					"-fsanitize=float-divide-by-zero",
+				);
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -311,16 +355,24 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_INTEGER = YES;
+				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_NULLABILITY = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = FKVLYCJL24;
 				INFOPLIST_FILE = "T1-Triangle/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "hanlonn.T1-Triangle";
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				PRODUCT_BUNDLE_IDENTIFIER = MyMetalDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
+				WARNING_CFLAGS = "";
 			};
 			name = Debug;
 		};
@@ -329,6 +381,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_INTEGER = YES;
+				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_NULLABILITY = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = FKVLYCJL24;
 				INFOPLIST_FILE = "T1-Triangle/Info.plist";
@@ -336,9 +391,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "hanlonn.T1-Triangle";
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				PRODUCT_BUNDLE_IDENTIFIER = MyMetalDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
+				WARNING_CFLAGS = "";
 			};
 			name = Release;
 		};

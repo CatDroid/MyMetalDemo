@@ -8,6 +8,9 @@
 #import "MTKViewDelegateRender.h"
 #import "ShaderTypes.h"
 
+#import "MemoryScribble.hpp"
+#import "MemoryGuard.hpp"
+
 @implementation MTKViewDelegateRender
 {
     // id
@@ -23,9 +26,13 @@
     
     id <MTLBuffer> _vertexbuffer ; // MTLResource的子类(子协议)
     
+    MemoryScribble* pMemoryScribble ;
+    MemoryGuard* pMemoryGuard;
 }
 
 #pragma mark - Constructor
+
+#include <mach-o/dyld.h>
 
 -(nonnull instancetype) initWithMetalKitView:(MTKView *) view
 {
@@ -34,6 +41,33 @@
         [self _setupMTKView:view];
         [self _setupRenderPass:view];
         [self _loadAssets:view.device];
+        
+        pMemoryScribble = new MemoryScribble{};
+        
+        pMemoryGuard = new MemoryGuard{};
+        
+        uint32_t numImages = _dyld_image_count();
+        for (uint32_t i = 0; i < numImages; i++)
+        {
+            // 加载地址每次启动APP，都有所不同
+            const struct mach_header *header = _dyld_get_image_header(i);
+            const char *name = _dyld_get_image_name(i);
+            const char *p = strrchr(name, '/');
+            if (header->filetype == MH_EXECUTE) {
+                if (p && (strcmp(p + 1, "T1-Triangle") == 0 || strcmp(p + 1, "libXxx.dylib") == 0)) {
+                    NSLog(@"module=%s, address=%p\n", p + 1, header);
+                    // 加载地址
+                }
+            }
+        
+        }
+        
+        
+        int a = 2 ;
+        int b = 0 ;
+        int c = a / b ;
+        NSLog(@"devid by zero is %d", c);
+        
         
     } else {
         NSLog(@"initWithMetalKitView super init fail");
@@ -138,6 +172,12 @@
 #pragma mark - MTKViewDelegate
 - (void) drawInMTKView:(nonnull MTKView *)view
 {
+    
+    // 测试内存
+    
+    pMemoryScribble->Update();
+    pMemoryGuard->Update();
+    
     // 执行渲染相关
     
     // 通过queue创建一个命令buffer
