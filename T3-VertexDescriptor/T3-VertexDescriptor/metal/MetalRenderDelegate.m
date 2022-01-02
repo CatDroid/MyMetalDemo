@@ -185,7 +185,7 @@
 //     // Texture coordinates.
 //     vertexDescriptor.attributes[1].format = MTLVertexFormatFloat2;
 //     vertexDescriptor.attributes[1].offset = 0;
-//     vertexDescriptor.attributes[1].bufferIndex = 1; // ??? 应该是1  ??? 两个buffer shader怎么改？？
+//     vertexDescriptor.attributes[1].bufferIndex = 1;
 //
 //     // Position Buffer Layout
 //     vertexDescriptor.layouts[0].stride = 8;
@@ -196,6 +196,11 @@
 //     vertexDescriptor.layouts[1].stepRate = 1;
 //     vertexDescriptor.layouts[1].stepFunction = MTLVertexStepFunctionPerVertex;
 //
+    // vertexDescriptor 涉及到 多个buffer layouts指定不同的buffer的布局方式:对齐和布进方式
+    // layouts控制buffer
+    // attributes 控制 从哪个buffer的什么偏移开始，写入 shader [[stage_in]]的结构体中
+    // https://metalbyexample.com/vertex-descriptors/
+    //
      
     renderPipelineDesc.vertexDescriptor = vertexDesc ; // 一个RenderPileLineState 只能对应一个vertexDescriptor
     
