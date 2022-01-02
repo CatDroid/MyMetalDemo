@@ -36,7 +36,15 @@ Custom view base class
 - (void)initCommon
 {
     _metalLayer = (CAMetalLayer*) self.layer;
+    
+    // 可选2或者3。最大是3 控制同时具有drawable的数量
+    // Core Animation limits the number of drawables that you can use simultaneously in your app. 
+    // _metalLayer.maximumDrawableCount = 2
 
+    // id<CAMetalDrawable> currentDrawable = [metalLayer nextDrawable];
+    // _drawableRenderDescriptor.colorAttachments[0].texture = currentDrawable.texture;
+    // 通过layer获取drawable，drawable中包含texture，可以设置到 DrawableRenderDescriptor(创建编码器需要)
+    
     /*
      CALayer设置代理 弱引用
      可以使用委托对象来提供图层的内容(layer’s contents)
