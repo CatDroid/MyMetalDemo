@@ -17,6 +17,7 @@ const unsigned int bufferSize = arrayLength * sizeof(float); // 浮点数buffer
 @property id<MTLCommandQueue> queue;
 @property id<MTLComputePipelineState> pipeline;
 @property id<MTLBuffer> buffer;
+@property id<MTLBuffer> structData;
 
 @end
 
@@ -88,6 +89,8 @@ const unsigned int bufferSize = arrayLength * sizeof(float); // 浮点数buffer
         buffer[arrayLength + i] = ((float)rand() / (float)RAND_MAX);
         
     }
+    
+    _structData = [_device newBufferWithLength:16  options:MTLResourceStorageModeShared];
 }
 
 -(void) doComputeCommand
@@ -119,7 +122,12 @@ const unsigned int bufferSize = arrayLength * sizeof(float); // 浮点数buffer
     [encoder setBuffer:_buffer offset:0 atIndex:0];
     [encoder setBuffer:_buffer offset:bufferSize atIndex:1]; // 偏移是byte单位
     [encoder setBuffer:_buffer offset:bufferSize+bufferSize atIndex:2];
+    //[encoder setBuffer:_structData offset:0 atIndex:3];
     
+    // 如果buffer是nil的话，dispatch调用abort
+    //          failed assertion `Compute Function(addFtn): missing buffer binding at index 3 for input3[0].'
+    // 如果buffer长度不够的话，dispatch调用abort
+    //         failed assertion `Compute Function(addFtn): argument input3[0] from buffer(3) with offset(0) and length(16) has space for 16 bytes, but argument has a length(32).'
 
     
     // Specify Thread Count and Organization 指定线程数目和组织

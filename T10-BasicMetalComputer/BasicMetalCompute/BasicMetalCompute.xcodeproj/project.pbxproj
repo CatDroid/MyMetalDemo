@@ -30,6 +30,7 @@
 		B06CCB1D2780609300584DC3 /* add.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = add.metal; sourceTree = "<group>"; };
 		B06CCB212780634000584DC3 /* MetalAdder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MetalAdder.h; sourceTree = "<group>"; };
 		B06CCB222780634000584DC3 /* MetalAdder.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalAdder.m; sourceTree = "<group>"; };
+		B072D6E12783490400747489 /* ComputeStructure.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ComputeStructure.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +67,7 @@
 				B06CCB1D2780609300584DC3 /* add.metal */,
 				B06CCB212780634000584DC3 /* MetalAdder.h */,
 				B06CCB222780634000584DC3 /* MetalAdder.m */,
+				B072D6E12783490400747489 /* ComputeStructure.h */,
 			);
 			path = BasicMetalCompute;
 			sourceTree = "<group>";
