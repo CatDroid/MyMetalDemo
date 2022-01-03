@@ -63,7 +63,7 @@
         {
             weights[j * size + i] *= weightScale;
         }
-    }
+    } // 权重是同步纹理传入的 不是通过 MTLBuffer的 
     
     MTLTextureDescriptor *textureDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR32Float
                                                                                                  width:size
