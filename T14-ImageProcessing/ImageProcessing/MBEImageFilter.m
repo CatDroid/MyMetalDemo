@@ -12,6 +12,10 @@
 @synthesize dirty=_dirty;
 @synthesize provider=_provider;
 
+// 在协议中声明的属性，一般在实现文件中下划线属性是不可用的，不会自动合成属性下划线，
+// 要有下划线属性，需要手动使用@synthesize指定合成的属性，否则不手动指定也是可以的，直接使用无下划线的属性即可。
+
+
 - (instancetype)initWithFunctionName:(NSString *)functionName context:(MBEContext *)context;
 {
     if ((self = [super init]))
