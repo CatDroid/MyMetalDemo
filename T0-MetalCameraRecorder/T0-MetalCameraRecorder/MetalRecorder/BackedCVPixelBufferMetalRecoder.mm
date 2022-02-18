@@ -14,6 +14,8 @@
 
 #import "RecordRender.h"
 
+#include <unordered_set>
+
 @interface BackedCVPixelBufferMetalRecoder()
 
 @property (atomic) BOOL isRecording ;
@@ -34,6 +36,8 @@
     RecordRender* recorderRender ;
 	
 	int counter ;
+    
+    std::unordered_set<void*> metalTextureCaches; // 测试 CVMetalTextureCacheCreateTextureFromImage 一共返回了多少个不一样的 CVMetalTextureRef
 }
 
 
@@ -213,7 +217,7 @@
     // Creates a Core Video Metal texture buffer from an existing image buffer.
     // 根据存在的 imagebuffer/pixelbuffer(由IOSurface buffer来实现) 来创建一个Metal texture
 	// 建立了 Metal texture 和 给定pixelbuffer的映射/live binding
-	// 增加 给定的 pixelBuffer 的引用计数 但没有增加 pixelBuffer内部的 IOSurface buffer 的引用计数
+	// 增加 给定的 pixelBuffer 的引用计数(+1) 但没有增加 pixelBuffer内部的 IOSurface buffer 的引用计数(+0) -- 实际上应该理解pixelBuffer持有 IOSurface buffer的一个计数引用
 	// 但是 Metal texture 需要拥有 IOSurface buffer
 	// 因此 必须自己强引用 pixelBuffer 或者 Metal texture 在metal渲染完毕之前
 	
@@ -223,37 +227,42 @@
 	// CVPixelBufferPool不会复用IOSurface依旧在被其他进程使用中的CVPixelBuffer
 	
 	IOSurfaceRef ioSurface = CVPixelBufferGetIOSurface(pixelBuffer);
-	//NSLog(@"//// ioSurface %lu, %p", (CFGetRetainCount(ioSurface)), ioSurface); // 1 如果CVPixelBuffer回收够快 这个也是3 估计是有MTLTexture还在引用??
-	//NSLog(@"//// pixelBufferOut %lu, %p ", (CFGetRetainCount(pixelBuffer)), pixelBuffer); // 1
+	NSLog(@"//// ioSurface %lu, %p", (CFGetRetainCount(ioSurface)), ioSurface); // 1 如果CVPixelBuffer回收够快 这个也是3 估计是有MTLTexture还在引用??
+	NSLog(@"//// pixelBufferOut %lu, %p ", (CFGetRetainCount(pixelBuffer)), pixelBuffer); // 1
 	
     CVReturn result = CVMetalTextureCacheCreateTextureFromImage(nil,
                                                                 _textureCache,
                                                                 pixelBuffer,
-                                                                nil,
+                                                                nil,  // 这里可以设置MTLTexture的一些属性  ?? 跟 CVMetalTextureCacheCreate 传入textureAttributes会有差别??
                                                                 format,
                                                                 width,
                                                                 height,
                                                                 0,
                                                                 &metalTextureRef);
 	
-	//NSLog(@"**** pixelBufferOut %lu, %p ", (CFGetRetainCount(pixelBuffer)), pixelBuffer); // ???? 这个还是 1 没有增加ImageBuffer计数
-	//NSLog(@"**** ioSurface %lu, %p", (CFGetRetainCount(ioSurface)), ioSurface); // ???? 3 这样就增加了两个引用计数了
+	NSLog(@"**** pixelBufferOut %lu, %p ", (CFGetRetainCount(pixelBuffer)), pixelBuffer);
+    NSLog(@"**** ioSurface %lu, %p", (CFGetRetainCount(ioSurface)), ioSurface);
+    // ???? 跟文档理解的不一样
+    // ???? pixelBuffer 这个还是 1 没有增加ImageBuffer计数 ??? 所以实际是因为CVMetalTextureRef导致IOSurface增加了计数
+    // ???? ioSurface 3 增加了两个引用计数了
 	
     if (result == kCVReturnSuccess)
     {
         // 返回这个image buffer 对应的MTLTexture
-		// NSLog(@"1111 metalTextureRef %lu, %p", (CFGetRetainCount(metalTextureRef)), metalTextureRef); // 1
-        texture = CVMetalTextureGetTexture(metalTextureRef); // 由ARC自动释放  OC对象和CF对象转换而已
-		// NSLog(@"2222 metalTextureRef %lu, %p", (CFGetRetainCount(metalTextureRef)), metalTextureRef); // 1
+        //NSLog(@"1111 metalTextureRef %lu, %p", (CFGetRetainCount(metalTextureRef)), metalTextureRef); // 1
+        texture = CVMetalTextureGetTexture(metalTextureRef); // 由ARC自动释放  OC对象和CF对象转换而已  并没有增加CVMetalTextureRef的引用计数 也就是CVMetalTextureRef一直都是1
         
-		// NSLog(@"3333 texture %lu ", CFGetRetainCount((__bridge CFTypeRef)(texture))); // 2 ;
-	 
-		
-		// NSLog(@"vvvv ioSurface %lu, %p", (CFGetRetainCount(ioSurface)), ioSurface); // 3
+        //metalTextureCaches.insert( (void*)metalTextureRef );
+        //NSLog(@"4444 metalTextureCaches = %zu " , metalTextureCaches.size()); // 5~6
+        
+        //NSLog(@"2222 metalTextureRef %lu, %p", (CFGetRetainCount(metalTextureRef)), metalTextureRef); // 1
+		//NSLog(@"3333 texture %lu ", CFGetRetainCount((__bridge CFTypeRef)(texture))); // 2 ;
+        //NSLog(@"vvvv ioSurface %lu, %p", (CFGetRetainCount(ioSurface)), ioSurface); // 3
 		
         CVBufferRelease(metalTextureRef); // 必须释放 CVMetalTextureCacheCreateTextureFromImage 返回 CVMetalTextureRef 的引用
         
-		// NSLog(@"xxxx ioSurface %lu, %p", (CFGetRetainCount(ioSurface)), ioSurface); // 3
+		//NSLog(@"xxxx ioSurface %lu, %p", (CFGetRetainCount(ioSurface)), ioSurface); // 3
+        // Metal纹理会持有IOSurface的两个引用计数 CVPixelBuffer只有一个引用计数
 		
         /*
          ------ ------ ------ ------ ------ ------

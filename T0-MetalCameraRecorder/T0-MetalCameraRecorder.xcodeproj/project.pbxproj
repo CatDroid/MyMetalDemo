@@ -17,7 +17,7 @@
 		B05EC91E268851C500293499 /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC91D268851C500293499 /* MetalView.m */; };
 		B05EC9252688529F00293499 /* MetalFrameBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC9232688529F00293499 /* MetalFrameBuffer.m */; };
 		B05EC9262688529F00293499 /* MetalViewDelegateRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC9242688529F00293499 /* MetalViewDelegateRender.m */; };
-		B05EC92C2688588F00293499 /* BackedCVPixelBufferMetalRecoder.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC92B2688588F00293499 /* BackedCVPixelBufferMetalRecoder.m */; };
+		B05EC92C2688588F00293499 /* BackedCVPixelBufferMetalRecoder.mm in Sources */ = {isa = PBXBuildFile; fileRef = B05EC92B2688588F00293499 /* BackedCVPixelBufferMetalRecoder.mm */; };
 		B05EC935268858F000293499 /* ScreenShader.metal in Sources */ = {isa = PBXBuildFile; fileRef = B05EC92F268858F000293499 /* ScreenShader.metal */; };
 		B05EC936268858F000293499 /* ScreenMesh.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC931268858F000293499 /* ScreenMesh.m */; };
 		B05EC937268858F000293499 /* ScreenRender.m in Sources */ = {isa = PBXBuildFile; fileRef = B05EC934268858F000293499 /* ScreenRender.m */; };
@@ -49,7 +49,7 @@
 		B05EC9232688529F00293499 /* MetalFrameBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MetalFrameBuffer.m; sourceTree = "<group>"; };
 		B05EC9242688529F00293499 /* MetalViewDelegateRender.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MetalViewDelegateRender.m; sourceTree = "<group>"; };
 		B05EC92A2688588F00293499 /* BackedCVPixelBufferMetalRecoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BackedCVPixelBufferMetalRecoder.h; sourceTree = "<group>"; };
-		B05EC92B2688588F00293499 /* BackedCVPixelBufferMetalRecoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BackedCVPixelBufferMetalRecoder.m; sourceTree = "<group>"; };
+		B05EC92B2688588F00293499 /* BackedCVPixelBufferMetalRecoder.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BackedCVPixelBufferMetalRecoder.mm; sourceTree = "<group>"; };
 		B05EC92F268858F000293499 /* ScreenShader.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = ScreenShader.metal; sourceTree = "<group>"; };
 		B05EC930268858F000293499 /* ScreenShaderType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScreenShaderType.h; sourceTree = "<group>"; };
 		B05EC931268858F000293499 /* ScreenMesh.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScreenMesh.m; sourceTree = "<group>"; };
@@ -145,7 +145,7 @@
 			isa = PBXGroup;
 			children = (
 				B05EC92A2688588F00293499 /* BackedCVPixelBufferMetalRecoder.h */,
-				B05EC92B2688588F00293499 /* BackedCVPixelBufferMetalRecoder.m */,
+				B05EC92B2688588F00293499 /* BackedCVPixelBufferMetalRecoder.mm */,
 				B0EABFE6268A1DD200F6C5E0 /* RecordRender.metal */,
 				B0EABFE9268A1DF500F6C5E0 /* RecordShaderType.h */,
 				B0EABFEA268A1E3900F6C5E0 /* RecordRender.h */,
@@ -270,7 +270,7 @@
 				B0EABFEC268A1E3900F6C5E0 /* RecordRender.m in Sources */,
 				B05EC9262688529F00293499 /* MetalViewDelegateRender.m in Sources */,
 				B05EC9062688513100293499 /* SceneDelegate.m in Sources */,
-				B05EC92C2688588F00293499 /* BackedCVPixelBufferMetalRecoder.m in Sources */,
+				B05EC92C2688588F00293499 /* BackedCVPixelBufferMetalRecoder.mm in Sources */,
 				B05EC935268858F000293499 /* ScreenShader.metal in Sources */,
 				B05EC91E268851C500293499 /* MetalView.m in Sources */,
 				B0EABFE7268A1DD200F6C5E0 /* RecordRender.metal in Sources */,
