@@ -85,6 +85,8 @@
     
     _sampleCount = 1 ; // 目前没有实现
     
+    //CAMetalLayer* layerWithoutView = [CAMetalLayer layer];
+    //layerWithoutView.frame = CGRectMake(0,0,16,16); // ios也可以不从view创建CAMetalLayer
 
     self->_metalLayer = (CAMetalLayer*)self.layer;
     self->_metalLayer.delegate = self ;
