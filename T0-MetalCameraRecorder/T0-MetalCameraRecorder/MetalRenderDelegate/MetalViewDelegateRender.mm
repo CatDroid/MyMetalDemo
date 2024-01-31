@@ -10,18 +10,23 @@
 #import <Metal/Metal.h>
 #import <os/lock.h>
 
+#include <queue>
+
 #import "MetalView.h"
 
 #import "MetalFrameBuffer.h"
 
 #import "ScreenRender.h"
 #import "CameraRender.h"
+#import "TextureRender.h"
 #import "MetalCameraDevice.h"
 
 #import "BackedCVPixelBufferMetalRecoder.h"
 #import "CVPixelBufferPoolReader.h"
 
-//#define SIMPLE_PIXEL_BUFFER 1
+#define SIMPLE_PIXEL_BUFFER 1
+
+static int kMtlTextureQueueSize = 5;
 
 // 匿名分类 类扩展 不想外面知道内部实现的协议
 @interface MetalViewDelegateRender() <CameraMetalFrameDelegate>
@@ -40,6 +45,7 @@
     MetalCameraDevice* _cameraDevice ;
     CameraRender* _cameraRender ;
     ScreenRender* _onscreenRender ;
+    TextureRender* _textureRender ;
     
 #if SIMPLE_PIXEL_BUFFER
 	CVPixelBufferPoolReader* recorder ;
@@ -50,9 +56,19 @@
 	
     CGSize _drawableSize ;
     
-    id<MTLTexture> _readyCameraTexture;
+    //id<MTLTexture> _readyCameraTexture;
+    // 验证 MTLTexture不会 增加对IOSurface的使用计数
+    NSMutableArray* _mtlTextureQueue ;
+    std::queue<CVMetalTextureRef> _mtlTextureRefQueue;
+
     
     os_unfair_lock spinLock;
+    
+    // 统计
+    int frameCount;
+    UInt64 lastTime;
+    
+
     
 }
 
@@ -69,6 +85,11 @@
 -(nonnull instancetype) initWithMetalView:(MetalView *) view
 {
     self = [super init];
+    
+    frameCount = -1;
+    lastTime = 0;
+    _mtlTextureQueue = [[NSMutableArray alloc] init];
+    
     if (self)
     {
         spinLock = OS_UNFAIR_LOCK_INIT;
@@ -102,7 +123,14 @@
     _onscreenRender = [[ScreenRender alloc] initWithDevice:gpu WithView:view];
     _cameraRender = [[CameraRender alloc] initWithDevice:gpu];
     _offscreenFramebuffer = [[MetalFrameBuffer alloc] initWithDevice:gpu WithSize:_drawableSize];
+    _textureRender = [[TextureRender alloc] initWithDevice:gpu];
     
+}
+
+static UInt64 getTime()
+{
+    UInt64 timestamp = [[NSDate date] timeIntervalSince1970]*1000;
+    return timestamp;
 }
 
 // !!! 摄像头和渲染是两个单独的线程 !!!
@@ -111,18 +139,44 @@
 -(void) OnDrawFrame:(CAMetalLayer*) layer WithView:(MetalView*) view
 {
     id<MTLTexture> cameraTexture = nil;
+    CVMetalTextureRef ref = NULL;
     os_unfair_lock_lock(&spinLock);
-    cameraTexture = _readyCameraTexture;
-    _readyCameraTexture = nil;
-    os_unfair_lock_unlock(&spinLock);
     
-    if (cameraTexture == nil)
-    {
-        // !! 没有调用 commandbuffer.presentDrawable 应该不会上屏
-        //NSLog(@"render lost frame");
+    assert([_mtlTextureQueue count] == _mtlTextureRefQueue.size());
+    
+    if ([_mtlTextureQueue count] > 0) {
+        cameraTexture = [_mtlTextureQueue objectAtIndex:0];
+        [_mtlTextureQueue removeObjectAtIndex:0];
+    }
+    if (!_mtlTextureRefQueue.empty()) {
+        ref = _mtlTextureRefQueue.front();
+        _mtlTextureRefQueue.pop();
+    }
+    os_unfair_lock_unlock(&spinLock);
+    if (cameraTexture == NULL) {
+        // NSLog(@"skip cameraTexture is null on render thread");
+        // 如果没有摄像头过来的metal纹理 这里打印 
         return ;
     }
-
+    
+    // 帧率统计  ------
+    // MetalView.m 中 _displayLink.preferredFramesPerSecond 可以控制回显的帧率
+    if (frameCount == -1) {
+        lastTime   = getTime();
+        frameCount = 0;
+    } else {
+        frameCount++;
+        if (frameCount >= 180) {
+           
+            UInt64 now = getTime();
+            UInt64 duration = now - lastTime;
+            NSLog(@"render/view fps = %f", frameCount * 1000.0f / duration);
+            frameCount = 0 ;
+            lastTime = getTime();
+        }
+    }
+    // --------------
+    
     //[NSThread sleepForTimeInterval:0.05];
     
     
@@ -131,10 +185,15 @@
     commandBuffer.label = @"OnDrawFrame";
     // 摄像头 离屏渲染到一个framebuffer
     
-    [_cameraRender encodeToCommandBuffer:commandBuffer
-                           sourceTexture:cameraTexture
+    [_cameraRender encodeToCommandBuffer:commandBuffer  // 先把三角形画到输入的MTLTexture上, 再画到离屏的texture上(_offscreenFramebuffer)
+                           sourceTexture:cameraTexture  // 这个输入的MTLTexture是相机输出的CVPixelBuffer-Based MTLTexture
                       destinationTexture:_offscreenFramebuffer.renderPassDescriptor.colorAttachments[0].texture];
     
+ 
+    
+    [_textureRender encodeToCommandBuffer:commandBuffer
+                            sourceTexture:nil
+                       destinationTexture:_offscreenFramebuffer.renderPassDescriptor.colorAttachments[0].texture];
 
     // 上屏
     MTLRenderPassDescriptor* framebuffer = view.currentRenderPassDescriptor;
@@ -152,6 +211,19 @@
     
  
     [commandBuffer presentDrawable:view.currentDrawable];
+    
+#if KEEP_CV_METAL_TEXTURE_REF_UNTIL_GPU_FINISED  
+    [commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> _Nonnull) {
+        IOSurfaceRef s_ref = cameraTexture.iosurface ;
+        int useCount = IOSurfaceGetUseCount(s_ref);
+        //NSLog(@"addCompletedHandler CVMetalTextureRef(ref count=%d) with backend IOSurface(use count=%d)", CFGetRetainCount(ref), useCount);
+        // CVMetalTextureRef(ref count=1) with backend IOSurface(use count=1) 都是1, 也就是CVMetalTextureRef释放之后IOSurface就会换回去
+        CVBufferRelease(ref);
+        // 按照官网wiki, GPU使用完成之后, 才释放 CVMetalTextureRef
+        // 这种情况 摄像头帧率高 渲染/上屏帧率低 就会出现drop frame了;
+        // 如果直接在生成 id<MTLTexture> 之后就直接释放CVMetalTextureRef 就不会drop frame, 而且画面会跳帧
+    }];
+#endif
  
     [commandBuffer commit];
     
@@ -180,6 +252,7 @@
 {
     if (recorder == nil)
     {
+        
 #if SIMPLE_PIXEL_BUFFER
 		recorder = [[CVPixelBufferPoolReader alloc] init:_drawableSize WithDevice: _globalDevice];
 #else
@@ -223,11 +296,18 @@
 }
  
 
--(void) onPreviewFrame:(id<MTLTexture>)texture WithSize:(CGSize) size
+-(void) onPreviewFrame:(id<MTLTexture>)texture WithCV:(CV_METAL_TEXTURE_REF) ref WithSize:(CGSize) size
 {
+    CVMetalTextureRef ref2 = (CVMetalTextureRef)ref; // void* -> CVMetalTextureRef(struct CVBuffer*)
+    
     // 摄像头来一帧 先cache 然后渲染线程再处理
     os_unfair_lock_lock(&spinLock);
-    _readyCameraTexture = texture ;
+    //_readyCameraTexture = texture ;
+    if ([_mtlTextureQueue count] < kMtlTextureQueueSize)
+    {
+        [_mtlTextureQueue addObject:texture];
+        _mtlTextureRefQueue.push(ref2);
+    } // 太多丢弃
     os_unfair_lock_unlock(&spinLock);
 }
 

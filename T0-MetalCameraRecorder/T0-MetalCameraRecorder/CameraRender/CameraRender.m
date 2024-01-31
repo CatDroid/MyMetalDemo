@@ -7,6 +7,7 @@
 
 #import "CameraRender.h"
 #import "CameraShaderType.h"
+#import "TriangleShaderTypes.h"
 
 @implementation CameraRender
 {
@@ -14,6 +15,10 @@
     // id<MTLDepthStencilState> _depthStencilState ;
     id<MTLSamplerState> _samplerState ;
     id<MTLBuffer> _vertexBuffer ;
+    
+    id<MTLRenderPipelineState> _renderTrianglePipelineState ;
+    
+    id <MTLBuffer> _triangleVertexbuffer ;
 }
 
 -(nonnull instancetype) initWithDevice: (nonnull id <MTLDevice>) device
@@ -108,6 +113,46 @@
     
     _vertexBuffer = [device newBufferWithBytes:buffer length:sizeof(buffer) options:MTLResourceStorageModeShared];
     
+    
+    id<MTLLibrary> library2 = [device newDefaultLibrary];
+    
+    id<MTLFunction> vertextFunction2 =  [library2 newFunctionWithName:@"triangleVertexShader"];
+    id<MTLFunction> fragmentFunction2 = [library2 newFunctionWithName:@"triangleFragmentShader"];
+    
+    
+    MTLRenderPipelineDescriptor* pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+    
+    pipelineStateDescriptor.vertexFunction = vertextFunction2 ;
+    pipelineStateDescriptor.fragmentFunction = fragmentFunction2 ;
+    
+    pipelineStateDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;        //  颜色附件
+    pipelineStateDescriptor.depthAttachmentPixelFormat      = MTLPixelFormatInvalid ;     //  深度附件
+    pipelineStateDescriptor.stencilAttachmentPixelFormat   = MTLPixelFormatInvalid ;   //  模版附件
+    
+    pipelineStateDescriptor.sampleCount = 1 ;
+    pipelineStateDescriptor.label = @"TrianglePipeline" ;
+    
+    
+    // 这里根据描述符 MTLRenderPipelineDescriptor 创建 MTLRenderPipelineState
+    NSError* error2 = NULL;
+    _renderTrianglePipelineState = [device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:&error2];
+    if (!_renderTrianglePipelineState)
+    {
+        NSLog(@"Failed to created pipeline state, error %@", error2);
+        // FIXME(hhl) 处理
+    }
+    
+    static const TriangleVertex vert[] = {
+        // (Vertex){ (vector_float2){0, 1.0}  }
+        {  {0,    0}  },
+        {  {0.5, -0.5}  },
+        {  {-0.5,-0.5}  }
+    };
+    
+    _triangleVertexbuffer = [device newBufferWithBytes:vert length:sizeof(vert) options:MTLResourceStorageModeShared];
+    
+    
+    
 }
 
 
@@ -115,6 +160,24 @@
                 sourceTexture: (nonnull id <MTLTexture>) sourceTexture
            destinationTexture: (nonnull id <MTLTexture>) destinationTexture
 {
+    
+    MTLRenderPassDescriptor* renderPassCameraAsTarget = [MTLRenderPassDescriptor new];
+    renderPassCameraAsTarget.colorAttachments[0].texture = sourceTexture;
+    renderPassCameraAsTarget.colorAttachments[0].loadAction = MTLLoadActionLoad ;
+    renderPassCameraAsTarget.colorAttachments[0].storeAction = MTLStoreActionStore ;
+    id<MTLRenderCommandEncoder> encoderToCameraPixelBuffer = [commandBuffer renderCommandEncoderWithDescriptor:renderPassCameraAsTarget];
+    encoderToCameraPixelBuffer.label = @"CameraCVPixelBufferTarget";
+    [encoderToCameraPixelBuffer pushDebugGroup:@"DrawTriangle"];
+    [encoderToCameraPixelBuffer setRenderPipelineState:_renderTrianglePipelineState];  // 着色器 颜色输出缓冲区格式
+ 
+    //[renderEncoder setVertexTexture:(nullable id<MTLTexture>) atIndex:(NSUInteger)]
+    [encoderToCameraPixelBuffer setVertexBuffer:_triangleVertexbuffer offset:0 atIndex:0];  // 设置vbo
+    
+    // 调用一次drawcall绘制三角形
+    [encoderToCameraPixelBuffer drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];// RenderObject RenderTarget
+    [encoderToCameraPixelBuffer popDebugGroup];
+    [encoderToCameraPixelBuffer endEncoding];
+    
    
     MTLRenderPassDescriptor* renderPass = [[MTLRenderPassDescriptor alloc] init];
     renderPass.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 1.0, 1.0, 1.0);

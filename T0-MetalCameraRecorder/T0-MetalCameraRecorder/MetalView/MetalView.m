@@ -201,7 +201,7 @@
     
     _displayLink = [screen displayLinkWithTarget:self selector:@selector(_notifyDrawFrame)];
     _displayLink.paused = false ;
-    _displayLink.preferredFramesPerSecond = 60;
+    _displayLink.preferredFramesPerSecond = 15; // 这个的确可以控制回显的帧率 
     
     
     // 2. 创建渲染线程 并且设置 CADisplayLink对象的回调线程
@@ -309,7 +309,7 @@
 
 }
 
- 
+
 
 
 #pragma mark - notify delegate -

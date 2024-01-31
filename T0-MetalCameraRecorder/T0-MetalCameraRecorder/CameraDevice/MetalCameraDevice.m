@@ -32,9 +32,19 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     BOOL _needDepthOutput ;
     
     AuthorizationState _authorStatus;
+    
+    
+    // 统计
+    int frameCount;
+    UInt64 lastTime;
+    
 }
 
+// 类的扩展--属性
 @property (atomic) BOOL isOpen;
+
+// 类的扩展--方法
+- (void) setCamera:(AVCaptureDevice*)device withFrameRate:(int)fps;
 
 @end
 
@@ -51,6 +61,8 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
         _authorStatus = A_NON;
         _isOpen = false ;
         _textureCache = NULL;
+        frameCount = -1;
+        lastTime = 0;
     }
     return self ;
 }
@@ -88,6 +100,15 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     }
 
     return _authorStatus == A_OK ;
+}
+
+// 对于<=30帧 可以这样控制摄像头帧率, 重复实现了 setFrameRate 已经有
+- (void) setCamera:(AVCaptureDevice*)device withFrameRate:(int)fps
+{
+    [device lockForConfiguration:NULL];
+    [device setActiveVideoMinFrameDuration:CMTimeMake(1, fps)];
+    [device setActiveVideoMaxFrameDuration:CMTimeMake(1, fps)];
+    [device unlockForConfiguration];
 }
 
 -(BOOL) openCamera:(id<MTLDevice>) device
@@ -149,8 +170,8 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     NSArray<AVCaptureDevice*>* captureDevices = [captureDeviceDiscoverySession devices];
     for (AVCaptureDevice* camera in captureDevices)
     {
-        //if (camera.position == AVCaptureDevicePositionFront)
-        if (camera.position == AVCaptureDevicePositionBack)
+        if (camera.position == AVCaptureDevicePositionFront)
+        //if (camera.position == AVCaptureDevicePositionBack) // 这里修改前后摄像头
         {
             inputCamera = camera;
             break;
@@ -237,13 +258,17 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     //设置视频捕捉输出代理方法
     [_videoDataOutput setSampleBufferDelegate:self queue:_captureQueue];
     
+    // kCVPixelFormatType_{长度|序列}{颜色空间}{Planar|BiPlanar}{VideRange|FullRange}
+    // kCVPixelFormatType_420YpCbCr8PlanarFullRange      uv分开存储是Planar
+    // kCVPixelFormatType_420YpCbCr8BiPlanarFullRange    uv交错存储是BiPlanar
+    
 	// 输出pixel buffer的属性配置 (摄像头输出的CVPixelBuffer要兼容Metal 在MacOS上正常 ios上有warning)
 	// https://stackoverflow.com/questions/46549906/cvmetaltexturecachecreatetexturefromimage-returns-6660-on-macos-10-13
 	// iphone xr 14.01 会报警告  videoSettings dictionary contains one or more unsupported (ignored) keys: MetalCompatibility
     NSDictionary* options = @{
        // kCVPixelFormatType_ARGB2101010LEPacked A 2 R 10 G 10 B 10
         (__bridge NSString*)kCVPixelBufferPixelFormatTypeKey :  @(kCVPixelFormatType_32BGRA),// 没有sRGB的选择这里
-		(__bridge NSString*)kCVPixelBufferMetalCompatibilityKey : @(YES), // 没有这个也是ok的??  当配置AVCaptureVideoDataOutput时候 请求Metal兼容
+		//(__bridge NSString*)kCVPixelBufferMetalCompatibilityKey : @(YES), //  当配置AVCaptureVideoDataOutput时候 请求Metal兼容 ?? 没有这个也是ok的??  iphoneXR ios 16.6
     };
     [_videoDataOutput setVideoSettings:options];
 	 
@@ -262,11 +287,11 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     // 返回具有指定媒体类型(specified media type)的输入端口(input port)的连接数组(connections array) 中的第一个连接(first connection)
     AVCaptureConnection* connection = [_videoDataOutput connectionWithMediaType:AVMediaTypeVideo];
     
-    // 设置方向 设置视频方向 不用自己处理图像旋转
+    // 设置方向 设置视频方向 不用自己处理图像旋转 (前摄像头要 顺时帧 旋转90为正  )
     [connection setVideoOrientation:AVCaptureVideoOrientationPortrait];
     if (inputCamera.position == AVCaptureDevicePositionFront)
     {
-        // 对于back和front都会改为竖的方向 但是front不会设置为左右镜像
+        // 对于back和front都会改为竖的方向 但是front不会设置为左右镜像(ios不加这个不会左右镜像)
         [connection setVideoMirrored:YES];
     }
     
@@ -315,6 +340,10 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
 	
     // 到这里 Capture会话的输入(设备 back)和输出(格式 bgra32)都已经设置好
     [_captureSession startRunning]; // 开始预览
+    
+    // 控制摄像头的帧率
+    //[self setFrameRate:15];
+    //[self setCamera:_inputDevice.device withFrameRate:15];
     
 	NSLog(@"开始预览, 格式为 %@ 颜色空间为 %ld", [inputCamera activeFormat], (long)[inputCamera activeColorSpace]); // 默认情况是colorSpace=sRGB ??? 没有选P3
  
@@ -374,18 +403,46 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     NSLog(@"MetalCameraDevice ~dealloc");
 }
 
+static UInt64 getTime()
+{
+    UInt64 timestamp = [[NSDate date] timeIntervalSince1970]*1000;
+    return timestamp;
+}
+
+
 #pragma mark - AVCaptureVideoDataOutputSampleBufferDelegate -
 
 - (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection;
 {
     
+    // 帧率统计  ------
+    if (frameCount == -1) {
+        lastTime   = getTime();
+        frameCount = 0;
+    } else {
+        frameCount++;
+        if (frameCount >= 180) {
+           
+            UInt64 now = getTime();
+            UInt64 duration = now - lastTime;
+            NSLog(@"camera fps = %f", frameCount * 1000.0f / duration); // 可以通过setFrameRate控制摄像头帧率(预览之后也可以)
+            frameCount = 0 ;
+            lastTime = getTime();
+        }
+    }
+    // --------------
+    
     
     // 摄像头回传CMSampleBufferRef数据，找到CVPixelBufferRef
     // typedef CVBufferRef CVImageBufferRef;
     // typedef CVImageBufferRef CVPixelBufferRef;
+    // typedef CVImageBufferRef CVMetalTextureRef;  // 都是CVImageBufferRef
+    
+    // !!!!! 非常重要 !!!!! 'CVMetalTextureRef' (aka 'struct __CVBuffer *') 是个 结构体指针 变量 !!! 所以赋值这个变量 不影响内部的引用计数
+    
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer); // 调用者并不持有返回的buffer,如需显式持有
     CVPixelBufferRef pixelBuffer = imageBuffer;
-    size_t width = CVPixelBufferGetWidth(pixelBuffer);
+    size_t width  = CVPixelBufferGetWidth(pixelBuffer);
     size_t height = CVPixelBufferGetHeight(pixelBuffer);
 	
    
@@ -393,12 +450,56 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     CVMetalTextureRef tmpTexture = NULL;
     // 从 imagebuffer 获取 Core Video Metal texture buffer
     // 创建一个缓冲的CoreView Metal纹理对象 映射到imagebuffer(由IOSurface buffer实现)，并绑定底层的MTLTexture对象和imageBuffer
-    // 这个函数会增加imagebuffer的使用计数 但是不会增加IOSurface Buffer的使用计数
-    // Core Video Metal纹理对象 持有这个IOSruface Buffer
-    // 因此在渲染完成之前 必须保持对imagebuffer或者metal纹理的强引用
+    
+    
+    /*
+     
+     IOSurface是一种可以在不同进程之间共享的硬件加速图像缓冲区
+     "满足某种条件"的CVPixelBufferRef本身就是"共享内存"，这个条件就是CVPixelBufferRef具有"kCVPixelBufferIOSurfacePropertiesKey"属性
+     
+     从iOS camera采集出来和从videoToolBox硬解出来的buffer是具有这个属性，也就是这些buffer可以在CPU和GPU之间共享
+
+     因此，IOSurface和CVPixelBuffer之间的关系可以理解为，
+     IOSurface提供了一种机制，使得CVPixelBuffer可以在不同的进程或者CPU和GPU之间进行高效的数据共享。
+     这种机制在进行视频处理或者图像处理的时候非常重要，因为它可以避免不必要的数据拷贝，从而提高处理效率
+     
+
+     // 为了确保我们正在使用同一份物理内存（避免拷贝发生），我们需要使用 IOSurface 作为后备存储（Backing Store）
+     // IOSurface 是一个共享的支持硬件加速的 Image Buffer，
+     // 通过使用 GPU 驻留追踪（GPU residency tracking），它还支持跨进程、跨框架间的访问。
+     // 如果此时 Pixel Buffer 由 IOSurface 后备存储，可以零成本创建一个映射向 Pixel Buffer 的 Metal Texture
+     
+     
+     https://developer.apple.com/forums/thread/694939
+     使用计数(use count) 和  保留计数(retain count) 是不同的
+     
+     如果使用计数非零，则 IOSurface 将不会被创建它的 CVPixelBufferPool 回收。
+     这可以防止一个 API 写入surface而另一个 API 同时读取他的竞争情况(race conditions )。  --- 也就是使用计数不是0,不会被回收,也就只会读取不会写入
+     如果存在 CVMetalTextureRef、CVImageBufferRef、CVPixelBufferRef，则底层 "IOSurface" 的"使用计数"将不为零
+     
+     */
+    {
+        IOSurfaceRef ioSurfaceRef = CVPixelBufferGetIOSurface(pixelBuffer);
+        if (ioSurfaceRef != NULL) {
+            int useCount = IOSurfaceGetUseCount(ioSurfaceRef);
+            int refCount = CFGetRetainCount(pixelBuffer);
+            //NSLog(@"before pixel2metal, CVPixelBuffer (reference count %d) with IOSurface backend(use count %d)", refCount, useCount);
+            //  before pixel2metal, CVPixelBuffer (reference count 1) with IOSurface backend(use count 2)
+        }
+    }
+    // xxxxxxx
+    // 这个函数会增加imagebuffer的使用计数 但是不会增加IOSurface Buffer的使用计数 -- 理解: IOSurface应该保持使用状态(use count!=0)，直到命令缓冲区(command buffer)用完为止
+    // Core Video Metal纹理对象 持有这个IOSruface Buffer                    --      而 CVMetalTextureRef 会使IOSurface使用计数+1 所以只要保证 CVMetalTextureRef 引用计数，一定就有 IOSurface的使用计数
+    // 因此在渲染完成之前 必须保持对imagebuffer或者metal纹理的强引用             --       需要保持一个对 CVMetalTextureRef的应用，直到使用它的命令缓冲区已被调度。 保持 id<MTLTexture> 不足以防止它被回收
+    // -----
+    // 官网最新的解释是
+    // 需要维护对textureOut的强引用，直到GPU完成访问纹理的命令的执行，
+    // 因为系统不会自动保留它。
+    // 开发人员通常在传递给 addCompletedHandler: 的块中释放这些引用。
+    // ooooo
     CVReturn result = CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
                                                                 _textureCache,
-                                                                pixelBuffer, // 会增加引用计数
+                                                                pixelBuffer, //  pixelBuffer的引用计数不会增加 但是IOSurface的使用计数会增加1
                                                                 nil,
                                                                 MTLPixelFormatBGRA8Unorm_sRGB,
 																//MTLPixelFormatBGRA8Unorm, // 这个会偏白色 摄像头输出一般是sRGB 或者P3??(广域10bits) sRGB是gamma0.45把暗的部分扩大(曲线是上凸) 导致直接当做线性来看 就会变白了
@@ -407,37 +508,82 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
                                                                 0,
                                                                 &tmpTexture);
     
-    // 目前来说可以通过这种方法 把pixelbuffer转换成MTLTexture
     
-    // ???
-    // 为了确保我们正在使用同一份物理内存（避免拷贝发生），我们需要使用 IOSurface 作为后备存储（Backing Store）
-    // IOSurface 是一个共享的支持硬件加速的 Image Buffer，
-    // 通过使用 GPU 驻留追踪（GPU residency tracking），它还支持跨进程、跨框架间的访问。
-    // 如果此时 Pixel Buffer 由 IOSurface 后备存储，可以零成本创建一个映射向 Pixel Buffer 的 Metal Texture
-    //
+    IOSurfaceRef ioSurfaceRef = CVPixelBufferGetIOSurface(pixelBuffer); // 不会增加引用
+    if (ioSurfaceRef == NULL) {
+        NSLog(@"pixel buffer has NOT properties of kCVPixelBUfferIOSurfacePropertiesKey");
+    } else {
+        int refCount = CFGetRetainCount(pixelBuffer);
+        int useCount = IOSurfaceGetUseCount(ioSurfaceRef);
+        int metalRefCount = CFGetRetainCount(tmpTexture);
+        //NSLog(@"after pixel2metal, CVPixelBuffer (reference count %d) with IOSurface backend(use count %d), metalRefCount=(%d)", refCount, useCount, metalRefCount);
+        // after pixel2metal, CVPixelBuffer (reference count 1) with IOSurface backend(use count 3), metalRefCount=(1)
+        // 这个CVPixelBuffer的backend是IOSurface
+    }
+    
+    // 目前来说可以通过这种方法 把pixelbuffer转换成MTLTexture
+
     if (result == kCVReturnSuccess)
     {
         //NSLog(@"CFGetRetainCount---CVMetalTextureRef counter %ld", CFGetRetainCount(tmpTexture)); // 1
         
         // 从image buffer获取MTLTexture
-        id<MTLTexture> texture = CVMetalTextureGetTexture(tmpTexture);
+        // CVMetalTextureGetTexture 不分配内存。 相反，它为您提供了一个指向 internal Metal Texture object的指针
         
+        id<MTLTexture> texture = CVMetalTextureGetTexture(tmpTexture); // 对 CVMetalTextureRef 并不会增加计数
+//        {
+//            int metalRefCount = CFGetRetainCount(tmpTexture);
+//            NSLog(@"after CFGetRetainCount, metalRefCount=(%d) ", metalRefCount); // =1
+//        }
+        
+        
+        
+        // ------------------------
         // NSLog(@"CFGetRetainCount---id<MTLTexture> counter %ld texture %p", CFGetRetainCount((__bridge CFTypeRef)texture), texture); // 2
         
         // NSLog(@"CVMetalTextureGetTexture texture:%@ class:%@", texture, [texture class]);
         // class   是 CaptureMTLTexture
         // texture 是 <CaptureMTLTexture: 0x281a9e400> -> <AGXA12FamilyTexture: 0x108906f90>
+        // ------------------------
         
-    
-        // CFRelease(CFTypeRef cf) // CFTypeRef  这个可以传入null  都是减少引用计数 计数为0的话销毁对象
-        CVBufferRelease(tmpTexture); // CVBufferRef  这个不能传入null
+        
+        
+        // ------------------------
+        //CVMetalTextureRef retainMtlTextureRef = CVBufferRetain(tmpTexture); // 返回跟输入一样, 是同一个Core Video buffer; 并且对IOSurface的使用计数不变
+        //NSLog(@"retainMtlTextureRef = %@, tmpTexture = %@ ", retainMtlTextureRef, tmpTexture );
+        //if (retainMtlTextureRef == tmpTexture) {
+        //    NSLog(@"this is same CVMetalTextureRef"); // 会打印这个
+        //}
+        //NSLog(@"after CVBufferRetain, IOSurface use count %d ", IOSurfaceGetUseCount(ioSurfaceRef)); // 3  对IOSurface的使用计数不会增加
+        // ------------------------
+        
+        
+#if KEEP_CV_METAL_TEXTURE_REF_UNTIL_GPU_FINISED
+#else
+        // CFRelease(CFTypeRef cf)
+        // CVBufferRelease(CVBufferRef buffer)
+        // CVBufferRelease可以是NULL的 都是减少引用计数 计数为0的话销毁对象
+        
+        //CFRelease(tmpTexture);
+        CVBufferRelease(tmpTexture); // id<MTLTexture> 不会增加 IOSurface 的使用计数
+#endif
+        
+        if (ioSurfaceRef != NULL) {
+            int useCount = IOSurfaceGetUseCount(ioSurfaceRef);
+            //NSLog(@"after release CVMetalTextureRef, CVPixelBuffer with IOSurface backend(use count %d)", useCount);
+            // int metalRefCount = CFGetRetainCount(tmpTexture); // 如果引用计数是0 就不能再访问 CVMetalTextureRef了(包括获取计数)
+            // NSLog(@"CVPixelBuffer with IOSurface backend(use count %d), after release CVMetalTextureRef(ref count %d)", useCount , metalRefCount);
+            // CVBufferRelease 之前 使用计数是3 之后是2
+            // CVMetalTextureGetTexture 并不会增加 IOSurface 的使用计数
+            // 也就是 CVPixelBufferRef 会持有 IOSurface一个使用计数, CVMetalTextureRef会持有IOSurface一个使用计数, 但是应该还可以一个地方持有一个使用计数
+        }
         // 如果不调用这个 就会一直返回不同的id<MTLTexture>
         // 最后没有buffer 只会 captureOutput:didDropSampleBuffer:
-        // 官方的demo MetalVideoCapture 就是在转换成id<MTLMetal>之后就释放
+        // 官方的demo MetalVideoCapture 就是在转换成id<MTLMetal>之后就释放  --> 这个Demo可能有问题,不过他在渲染耗时的情况,摄像头会替换掉还没有渲染的id<MTLTexture>,index只会在渲染后+1
         // Apple的Demo
         // https://developer.apple.com/library/archive/navigation/
         
-        [self.delegate onPreviewFrame:texture WithSize:CGSizeMake(width,height)];
+        [self.delegate onPreviewFrame:texture WithCV:tmpTexture WithSize:CGSizeMake(width,height)];
         
  
     
@@ -456,8 +602,8 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
   didDropSampleBuffer:(CMSampleBufferRef)sampleBuffer // typedef struct opaqueCMSampleBuffer CMSampleBufferRef;
        fromConnection:(AVCaptureConnection *)connection //API_AVAILABLE(ios(6.0))
 {
-    NSLog(@"drop frame");
-    
+    // NSLog(@"drop frame");
+    // 如果没有可用的IOSurface/CVPixelBuffer 这里会丢帧 
 }
 
 

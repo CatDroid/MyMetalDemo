@@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 -(BOOL) openCamera:(id<MTLDevice>) device;
 
+
 -(void) setFrameRate:(float) frameRate;
 
 -(BOOL) closeCamera;
@@ -37,8 +38,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol CameraMetalFrameDelegate <NSObject>
 
+// 实际是 CVMetalTextureRef 类型  也就是 struct CVBuffer* 
+#define CV_METAL_TEXTURE_REF void*
+// 不在获取id<MTLTexture>后立刻释放CVMetalTextureRef
+#define KEEP_CV_METAL_TEXTURE_REF_UNTIL_GPU_FINISED 1
 @required
--(void) onPreviewFrame:(id<MTLTexture>)texture WithSize:(CGSize) size;
+-(void) onPreviewFrame:(id<MTLTexture>)texture WithCV:(CV_METAL_TEXTURE_REF) ref WithSize:(CGSize) size;
 
 @end
 
