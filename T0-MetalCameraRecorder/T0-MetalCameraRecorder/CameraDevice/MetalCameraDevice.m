@@ -185,28 +185,36 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     
     NSAssert(inputCamera != nil, @"Find Camera Fail");
 	
-	
+    
 	// NSGenericException
 	// [AVCaptureDevice setActiveColorSpace:]
 	// 在第一次 通过lockForConfiguration 成功地 获取 排他性控制权 之前 不能被调用
-	// inputCamera.activeColorSpace = AVCaptureColorSpace_sRGB;
+	//inputCamera.activeColorSpace = AVCaptureColorSpace_sRGB;
 	//
 
 	// iOS 摄像头采集; 420v（VideoRange）和420f（FullRange）的区别: 亮度和色差取值范围不一样 video只有 Y 16~235 UV 16~240
 	// iOS 没有使用传统的 YUV，而是使用 YCbCr; YUV 和 YCbCr 的差异点，两者数据的标准不一样，YCbCr 有 ITU - R BT.601 & ITU - R BT.709 两个标准
 	//
-	// 对于420f支持 sRGB/P3
-	// 对于420v只支持 sRGB
-	// NSArray<AVCaptureDeviceFormat *>* formats = [inputCamera formats]  ;
-	//[formats enumerateObjectsUsingBlock:^(AVCaptureDeviceFormat * _Nonnull format, NSUInteger idx, BOOL * _Nonnull stop) {
-	//		NSLog(@"support AVCaptureDeviceFormat mediaType %@ colorspaces = %@", format.mediaType, format.supportedColorSpaces); // 支持的颜色空间sRGB P3 HLG
-	//}];
+	// 对于420f支持 sRGB/P3  对于420v只支持 sRGB 色域 !!     RGB 也可以设置sRGB(内部从yuv转换成rgb?)
+    //
+    NSArray<AVCaptureDeviceFormat *>* formats = [inputCamera formats]  ;
+	[formats enumerateObjectsUsingBlock:^(AVCaptureDeviceFormat * _Nonnull format, NSUInteger idx, BOOL * _Nonnull stop) {
+			NSLog(@"support AVCaptureDeviceFormat Description %@ mediaType %@ colorspaces = %@",
+                  format.formatDescription , // 不同分辨率  不同420v/f
+                  format.mediaType,
+                  format.supportedColorSpaces); // 支持的颜色空间sRGB P3 HLG
+    /*
+             AVCaptureColorSpace_sRGB       = 0,
+             AVCaptureColorSpace_P3_D65     = 1, // P3 色域  10bit P3
+             AVCaptureColorSpace_HLG_BT2020 API_AVAILABLE(ios(14.1), macCatalyst(14.1), tvos(17.0)) API_UNAVAILABLE(macos, visionos) = 2,
+             AVCaptureColorSpace_AppleLog API_AVAILABLE(ios(17.0), macCatalyst(17.0), tvos(17.0)) API_UNAVAILABLE(macos, visionos) = 3,
+     
+             所有设备都支持sRGB颜色空间 有些设备和格式支持P3颜色空间 具有更广的色域
+             
+    */
+	}];
 	
-	// AVCaptureColorSpace_sRGB
-	// AVCaptureColorSpace_P3_D65 // P3 色域  10bit P3
-	// AVCaptureColorSpace_HLG_BT2020
-	//
-	// 所有设备都支持sRGB颜色空间 有些设备和格式支持P3颜色空间 具有更广的色域
+ 
     
     
     // 打开设备
@@ -332,10 +340,13 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
 	
 	
 	// 这样才能设置为P3色域
-	// [_captureSession setAutomaticallyConfiguresCaptureDeviceForWideColor:false];
-	// [inputCamera lockForConfiguration:NULL];
-	// inputCamera.activeColorSpace = AVCaptureColorSpace_P3_D65;
-	// [inputCamera unlockForConfiguration];
+    if (NO) {
+        [_captureSession setAutomaticallyConfiguresCaptureDeviceForWideColor:false]; // 必须设置这个 再设置色域
+        [inputCamera lockForConfiguration:NULL];
+        inputCamera.activeColorSpace = AVCaptureColorSpace_P3_D65; // 要是yuv420f 才支持 P3_D65
+        //inputCamera.activeColorSpace = AVCaptureColorSpace_sRGB;
+        [inputCamera unlockForConfiguration];
+    }
 	
 	
     // 到这里 Capture会话的输入(设备 back)和输出(格式 bgra32)都已经设置好
@@ -444,7 +455,23 @@ static UInt64 getTime()
     CVPixelBufferRef pixelBuffer = imageBuffer;
     size_t width  = CVPixelBufferGetWidth(pixelBuffer);
     size_t height = CVPixelBufferGetHeight(pixelBuffer);
-	
+    
+    CFTypeRef colorAttachments = CVBufferGetAttachment(pixelBuffer, kCVImageBufferYCbCrMatrixKey, NULL);
+    if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_601_4, 0) == kCFCompareEqualTo) {
+        //NSLog(@"BT.601 颜色空间");
+    } else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_709_2, 0) == kCFCompareEqualTo) {
+        //NSLog(@"BT.709 颜色空间");
+    } else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_2020, 0) == kCFCompareEqualTo) {
+        NSLog(@"BT.2020 颜色空间");
+    } else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_DCI_P3, 0) == kCFCompareEqualTo) {
+        NSLog(@"DCI_P3 颜色空间");
+    } else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_P3_D65, 0) == kCFCompareEqualTo) {
+        NSLog(@"P3_D65 颜色空间");
+    } else {
+        const char* cString = CFStringGetCStringPtr((CFStringRef)colorAttachments , kCFStringEncodingUTF8);
+        NSLog(@"? 颜色空间是 %s", cString );
+    }
+    // iphone xr 普通摄像头 输出rgb格式 颜色空间是 BT.601
    
     // 创建CoreVideo的Metal纹理缓存
     CVMetalTextureRef tmpTexture = NULL;

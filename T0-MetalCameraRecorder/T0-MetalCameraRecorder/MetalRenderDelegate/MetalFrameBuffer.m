@@ -41,7 +41,7 @@
         // colorTexture =  <CaptureMTLTexture: 0x283374f40> -> <AGXA12FamilyTexture: 0x1080069b0> ...
         // class = CaptureMTLTexture
         
-        
+        // textureDescriptor.storageMode  = MTLStorageModePrivate ;
         textureDescriptor.pixelFormat = MTLPixelFormatDepth32Float_Stencil8;
         id<MTLTexture> depthTexture = [gpu newTextureWithDescriptor:textureDescriptor];
         // NSLog(@"depthTexture = %@ class = %@", depthTexture, [depthTexture class] );

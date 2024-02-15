@@ -17,8 +17,6 @@
 
 @property (atomic) BOOL isRecording ;
 
-//-(CVPixelBufferRef)createCVPixelBufferRefFromNV12buffer:(unsigned char *)buffer width:(int)w height:(int)h ;
-
 @end
 
 @implementation CVPixelBufferPoolReader
@@ -65,7 +63,8 @@
 	CVPixelBufferCreate(kCFAllocatorDefault,
 						size.width,
 						size.height,
-						kCVPixelFormatType_32BGRA, // CVPixelBuffer 并不关系 sRGB还是RGB ??
+                        kCVPixelFormatType_32BGRA, // CVPixelBuffer 并不关系 sRGB还是RGB ??
+                        //kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
 						optionsDictionary,
 						&_onePixelBuffer);
 	
@@ -87,8 +86,11 @@
 													_onePixelBuffer, // 不会增加CVPixelBuffer引用计数,当会增加使用计数
 													NULL,
                                                     MTLPixelFormatBGRA8Unorm_sRGB,
-													size.width,
-													size.height,
+                                                    //MTLPixelFormatBGRA8Unorm,
+													//size.width / 4,
+													//size.height * 1.5, // 宽和高其中一个都不能超过原来CVPixelBuffer的宽高, 可以小于
+                                                    size.width,
+                                                    size.height,
 													0,
 													&tmpTexture);
     
