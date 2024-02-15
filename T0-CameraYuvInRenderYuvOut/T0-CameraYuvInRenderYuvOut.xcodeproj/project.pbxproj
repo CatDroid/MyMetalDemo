@@ -1,0 +1,424 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B02B69E12B7DEEF400BFED5E /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B02B69E02B7DEEF400BFED5E /* AppDelegate.m */; };
+		B02B69E42B7DEEF400BFED5E /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B02B69E32B7DEEF400BFED5E /* SceneDelegate.m */; };
+		B02B69E72B7DEEF400BFED5E /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B02B69E62B7DEEF400BFED5E /* ViewController.m */; };
+		B02B69EA2B7DEEF400BFED5E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B02B69E82B7DEEF400BFED5E /* Main.storyboard */; };
+		B02B69EC2B7DEEF600BFED5E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B02B69EB2B7DEEF600BFED5E /* Assets.xcassets */; };
+		B02B69EF2B7DEEF600BFED5E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B02B69ED2B7DEEF600BFED5E /* LaunchScreen.storyboard */; };
+		B02B69F22B7DEEF600BFED5E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B02B69F12B7DEEF600BFED5E /* main.m */; };
+		B02B69FB2B7DF1DD00BFED5E /* MetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = B02B69FA2B7DF1DD00BFED5E /* MetalView.m */; };
+		B0C6F6E42B7E03D40042F0B1 /* CameraDevice.m in Sources */ = {isa = PBXBuildFile; fileRef = B0C6F6E32B7E03D40042F0B1 /* CameraDevice.m */; };
+		B0C6F6EA2B7E0E4A0042F0B1 /* MetalRenderDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = B0C6F6E92B7E0E4A0042F0B1 /* MetalRenderDelegate.mm */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B02B69DC2B7DEEF400BFED5E /* T0-CameraYuvInRenderYuvOut.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "T0-CameraYuvInRenderYuvOut.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B02B69DF2B7DEEF400BFED5E /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		B02B69E02B7DEEF400BFED5E /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		B02B69E22B7DEEF400BFED5E /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
+		B02B69E32B7DEEF400BFED5E /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
+		B02B69E52B7DEEF400BFED5E /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		B02B69E62B7DEEF400BFED5E /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		B02B69E92B7DEEF400BFED5E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		B02B69EB2B7DEEF600BFED5E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B02B69EE2B7DEEF600BFED5E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		B02B69F02B7DEEF600BFED5E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B02B69F12B7DEEF600BFED5E /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		B02B69F92B7DEFE300BFED5E /* MetalView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MetalView.h; sourceTree = "<group>"; };
+		B02B69FA2B7DF1DD00BFED5E /* MetalView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MetalView.m; sourceTree = "<group>"; };
+		B0C6F6E32B7E03D40042F0B1 /* CameraDevice.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CameraDevice.m; sourceTree = "<group>"; };
+		B0C6F6E62B7E03E70042F0B1 /* CameraDevice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CameraDevice.h; sourceTree = "<group>"; };
+		B0C6F6E82B7E0E270042F0B1 /* MetalRenderDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MetalRenderDelegate.h; sourceTree = "<group>"; };
+		B0C6F6E92B7E0E4A0042F0B1 /* MetalRenderDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MetalRenderDelegate.mm; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B02B69D92B7DEEF400BFED5E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B02B69D32B7DEEF400BFED5E = {
+			isa = PBXGroup;
+			children = (
+				B02B69DE2B7DEEF400BFED5E /* T0-CameraYuvInRenderYuvOut */,
+				B02B69DD2B7DEEF400BFED5E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B02B69DD2B7DEEF400BFED5E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B02B69DC2B7DEEF400BFED5E /* T0-CameraYuvInRenderYuvOut.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B02B69DE2B7DEEF400BFED5E /* T0-CameraYuvInRenderYuvOut */ = {
+			isa = PBXGroup;
+			children = (
+				B0C6F6E72B7E0DB90042F0B1 /* MetalRenderDelegate */,
+				B0C6F6E22B7E03A40042F0B1 /* CameraDevice */,
+				B02B69F82B7DEFC700BFED5E /* MetalView */,
+				B02B69DF2B7DEEF400BFED5E /* AppDelegate.h */,
+				B02B69E02B7DEEF400BFED5E /* AppDelegate.m */,
+				B02B69E22B7DEEF400BFED5E /* SceneDelegate.h */,
+				B02B69E32B7DEEF400BFED5E /* SceneDelegate.m */,
+				B02B69E52B7DEEF400BFED5E /* ViewController.h */,
+				B02B69E62B7DEEF400BFED5E /* ViewController.m */,
+				B02B69E82B7DEEF400BFED5E /* Main.storyboard */,
+				B02B69EB2B7DEEF600BFED5E /* Assets.xcassets */,
+				B02B69ED2B7DEEF600BFED5E /* LaunchScreen.storyboard */,
+				B02B69F02B7DEEF600BFED5E /* Info.plist */,
+				B02B69F12B7DEEF600BFED5E /* main.m */,
+			);
+			path = "T0-CameraYuvInRenderYuvOut";
+			sourceTree = "<group>";
+		};
+		B02B69F82B7DEFC700BFED5E /* MetalView */ = {
+			isa = PBXGroup;
+			children = (
+				B02B69F92B7DEFE300BFED5E /* MetalView.h */,
+				B02B69FA2B7DF1DD00BFED5E /* MetalView.m */,
+			);
+			path = MetalView;
+			sourceTree = "<group>";
+		};
+		B0C6F6E22B7E03A40042F0B1 /* CameraDevice */ = {
+			isa = PBXGroup;
+			children = (
+				B0C6F6E32B7E03D40042F0B1 /* CameraDevice.m */,
+				B0C6F6E62B7E03E70042F0B1 /* CameraDevice.h */,
+			);
+			path = CameraDevice;
+			sourceTree = "<group>";
+		};
+		B0C6F6E72B7E0DB90042F0B1 /* MetalRenderDelegate */ = {
+			isa = PBXGroup;
+			children = (
+				B0C6F6E82B7E0E270042F0B1 /* MetalRenderDelegate.h */,
+				B0C6F6E92B7E0E4A0042F0B1 /* MetalRenderDelegate.mm */,
+			);
+			path = MetalRenderDelegate;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B02B69DB2B7DEEF400BFED5E /* T0-CameraYuvInRenderYuvOut */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B02B69F52B7DEEF600BFED5E /* Build configuration list for PBXNativeTarget "T0-CameraYuvInRenderYuvOut" */;
+			buildPhases = (
+				B02B69D82B7DEEF400BFED5E /* Sources */,
+				B02B69D92B7DEEF400BFED5E /* Frameworks */,
+				B02B69DA2B7DEEF400BFED5E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "T0-CameraYuvInRenderYuvOut";
+			productName = "T0-CameraYuvInRenderYuvOut";
+			productReference = B02B69DC2B7DEEF400BFED5E /* T0-CameraYuvInRenderYuvOut.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B02B69D42B7DEEF400BFED5E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1520;
+				TargetAttributes = {
+					B02B69DB2B7DEEF400BFED5E = {
+						CreatedOnToolsVersion = 15.2;
+					};
+				};
+			};
+			buildConfigurationList = B02B69D72B7DEEF400BFED5E /* Build configuration list for PBXProject "T0-CameraYuvInRenderYuvOut" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B02B69D32B7DEEF400BFED5E;
+			productRefGroup = B02B69DD2B7DEEF400BFED5E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B02B69DB2B7DEEF400BFED5E /* T0-CameraYuvInRenderYuvOut */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B02B69DA2B7DEEF400BFED5E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B02B69EF2B7DEEF600BFED5E /* LaunchScreen.storyboard in Resources */,
+				B02B69EC2B7DEEF600BFED5E /* Assets.xcassets in Resources */,
+				B02B69EA2B7DEEF400BFED5E /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B02B69D82B7DEEF400BFED5E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B0C6F6E42B7E03D40042F0B1 /* CameraDevice.m in Sources */,
+				B02B69E72B7DEEF400BFED5E /* ViewController.m in Sources */,
+				B02B69E12B7DEEF400BFED5E /* AppDelegate.m in Sources */,
+				B02B69F22B7DEEF600BFED5E /* main.m in Sources */,
+				B02B69E42B7DEEF400BFED5E /* SceneDelegate.m in Sources */,
+				B02B69FB2B7DF1DD00BFED5E /* MetalView.m in Sources */,
+				B0C6F6EA2B7E0E4A0042F0B1 /* MetalRenderDelegate.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		B02B69E82B7DEEF400BFED5E /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B02B69E92B7DEEF400BFED5E /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		B02B69ED2B7DEEF600BFED5E /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B02B69EE2B7DEEF600BFED5E /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		B02B69F32B7DEEF600BFED5E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		B02B69F42B7DEEF600BFED5E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B02B69F62B7DEEF600BFED5E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FKVLYCJL24;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "T0-CameraYuvInRenderYuvOut/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSCameraUsageDescription = "";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = MyMetalDemo1;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B02B69F72B7DEEF600BFED5E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FKVLYCJL24;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "T0-CameraYuvInRenderYuvOut/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSCameraUsageDescription = "";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = MyMetalDemo1;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B02B69D72B7DEEF400BFED5E /* Build configuration list for PBXProject "T0-CameraYuvInRenderYuvOut" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B02B69F32B7DEEF600BFED5E /* Debug */,
+				B02B69F42B7DEEF600BFED5E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B02B69F52B7DEEF600BFED5E /* Build configuration list for PBXNativeTarget "T0-CameraYuvInRenderYuvOut" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B02B69F62B7DEEF600BFED5E /* Debug */,
+				B02B69F72B7DEEF600BFED5E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B02B69D42B7DEEF400BFED5E /* Project object */;
+}
