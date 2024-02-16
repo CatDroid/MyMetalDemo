@@ -365,7 +365,7 @@ fragment float4 fragmentStage(
 {
 
     
-    // yuv2rgb
+    // yuv2rgb pipeline
     {
         NSError *errors;
         NSString* shaderString = [NSString stringWithUTF8String:sYuv2RgbShader];
@@ -394,7 +394,7 @@ fragment float4 fragmentStage(
         NSAssert(_pipelineStateYuv2Rgb != nil , @"%s: _pipelineState yuv2rgb %@", __FUNCTION__, errors);
     }
   
-    // screen
+    // screen pipeline
     {
         NSError *errors;
         NSString* shaderString = [NSString stringWithUTF8String:sRgbToScreen];
@@ -418,7 +418,7 @@ fragment float4 fragmentStage(
         NSAssert(_pipelineStateScreen != nil , @"%s: _pipelineState screen %@", __FUNCTION__, errors);
     }
     
-    // rgb2yuv
+    // rgb2yuv pipeline
     {
         NSError *errors;
         NSString* shaderString = [NSString stringWithUTF8String:sRgbToYuv];
@@ -433,7 +433,10 @@ fragment float4 fragmentStage(
         pipelineStateDescriptor.vertexFunction = vertexFunction ;
         pipelineStateDescriptor.fragmentFunction = fragmentFunction ;
         
-        pipelineStateDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;  // rgb转到yuv 使用线性bgra
+        // rgb转到yuv 使用线性rgba(不管原来的rgb是否sRGB, 都不使用硬件自动转换成SRGB)
+        // 注意shader的顺序 是 rg ba (y通道:第一个像素 第二个像素 第三个像素 第四个像素)
+     
+        pipelineStateDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatRGBA8Unorm;
         pipelineStateDescriptor.colorAttachments[0].blendingEnabled = NO;
         pipelineStateDescriptor.rasterSampleCount = 1 ;
         
@@ -507,7 +510,7 @@ fragment float4 fragmentStage(
     // _yuv420p Texture 写死参数 不旋转
     {
         MTLTextureDescriptor *textureDescriptor = [[MTLTextureDescriptor alloc] init];
-        textureDescriptor.pixelFormat =  MTLPixelFormatBGRA8Unorm; // MTLPixelFormatBGRA8Unorm_sRGB yuv转成rgb 直接当做是线性rgb来处理
+        textureDescriptor.pixelFormat =  MTLPixelFormatRGBA8Unorm; // MTLPixelFormatRGBA8Unorm_sRGB yuv转成rgb 直接当做是线性rgb来处理 顺序要跟shader
         textureDescriptor.textureType = MTLTextureType2D;
         textureDescriptor.width =  kWidth / 4;
         textureDescriptor.height = int(kHeight  * 1.5) ;
@@ -560,7 +563,7 @@ static UInt64 getTime()
     // --------------
     
     // 覆盖原来摄像头数据
-    if (FALSE) {
+    if (TRUE) {
         
         NSAssert( CVPixelBufferGetPlaneCount(pixelBuffer) == 2, @"Plane Count != 2" );
         
@@ -628,6 +631,10 @@ static UInt64 getTime()
             
         }
         
+        // RGB                 YCbCr
+        // 230  90  50    ---  116 96 191
+        // 211 240  235   ---  216 128 115
+        
         int R = 211;
         int G = 240;
         int B = 235;
@@ -643,18 +650,53 @@ static UInt64 getTime()
         uint8_t overrideCb = (uint32_t)Cb;//93u;//154u; // (Y:119,Cb:34,Cr:51)可能不是有效的YCbCr组合,转换成RGB会得到某些分量是负数(R和G是负数 截断成0)
         uint8_t overrideCr = (uint32_t)Cr;//204u;//104u;
         
-        // override y :
-        memset(yBase, overrideY, y_stride * y_height);
-
-        // override uv:
+        
+        overrideY  = 216u;
+        overrideCb = 128u;
+        overrideCr = 115u;
+    
+        
+        uint8_t overrideY2  =  116u;
+        uint8_t overrideCb2 =  96u;
+        uint8_t overrideCr2 = 191u;
+        
         // kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange  ios是小端（低字节在低位/低地址)  从低地址--高地址: YYYYY--CbCrCbCr  Cr是高地址
-        uint16_t uv = ((uint16_t)overrideCr << 8) + (uint16_t)overrideCb;
+        uint16_t y   = ((uint16_t)overrideY << 8)   + (uint16_t)overrideY;
+        uint16_t y2  = ((uint16_t)overrideY2 << 8)  + (uint16_t)overrideY2;
+        uint16_t uv  = ((uint16_t)overrideCr << 8)  + (uint16_t)overrideCb;
+        uint16_t uv2 = ((uint16_t)overrideCr2 << 8) + (uint16_t)overrideCb2;
+        
+        NSLog(@"override  %u %u %u - %u %u %u ",
+              overrideY,  overrideCb,  overrideCr,
+              overrideY2, overrideCb2, overrideCr2
+              );
+        
+//#define ONE_COLOR 1
+        
+        // override y :
+#if ONE_COLOR
+        memset(yBase, overrideY, y_stride * y_height);
+#else
+        uint16_t* yBase16 = (uint16_t*)yBase;
+        for (int j = 0 ; j < y_height; j++)
+        {
+            for (int i = 0; i < y_stride / 2; i++ )
+            {
+                *(yBase16++) = i % 2 == 0 ? y : y2;
+            }
+        }
+#endif
+        // override uv:
         uint16_t* uvBase16 = (uint16_t*)uvBase;
         for (int j = 0; j < uv_height; j++)
         {
             for (int i = 0; i < uv_stride / 2; i++ ) // uv_width = 360  uv_stride/2 = 768/2 = 384  多了24个像素  每个像素2个字节(分别存放u和v)
             {
+#if ONE_COLOR
                 *(uvBase16++) = uv;
+#else
+                *(uvBase16++) = i % 2 == 0 ? uv : uv2;
+#endif
             }
         }
 
@@ -796,12 +838,45 @@ static UInt64 getTime()
         uint8_t* bufferYuv420p = yuv420p.data();
         
         if (TRUE) {
-            NSLog(@"nv21:y:%u, u:%u, v:%u", *yDestPlane,
-                                        *(uvDestPlane),
-                                        *(uvDestPlane+1));
-            NSLog(@"yuv420:y:%u, u:%u, v:%u", *bufferYuv420p,
-                                        *(bufferYuv420p + imageWidth*imageHeight),
-                                        *(bufferYuv420p + imageWidth*imageHeight*5/4));
+            NSLog(@"nv21:y:%u, u:%u, v:%u   y~%u %u %u uv~(%u %u) (%u %u) (%u %u)"
+                  ,*yDestPlane
+                  ,*(uvDestPlane)
+                  ,*(uvDestPlane+1)
+                  
+                  ,*(yDestPlane+1)
+                  ,*(yDestPlane+2)
+                  ,*(yDestPlane+3)
+                  
+                  ,*(uvDestPlane+2)
+                  ,*(uvDestPlane+3)
+                  
+                  ,*(uvDestPlane+4)
+                  ,*(uvDestPlane+5)
+                  
+                  ,*(uvDestPlane+6)
+                  ,*(uvDestPlane+7)
+                  
+                  );
+            NSLog(@"yuv420:y:%u, u:%u, v:%u   y~%u %u %u uv~(%u %u) (%u %u) (%u %u)"
+                  ,*bufferYuv420p
+                  ,*(bufferYuv420p + imageWidth*imageHeight)
+                  ,*(bufferYuv420p + imageWidth*imageHeight*5/4)
+                  
+                  ,*(bufferYuv420p+1)
+                  ,*(bufferYuv420p+2)
+                  ,*(bufferYuv420p+3)
+                  
+                  ,*(bufferYuv420p + imageWidth*imageHeight     +1)
+                  ,*(bufferYuv420p + imageWidth*imageHeight*5/4 +1)
+                  
+                  ,*(bufferYuv420p + imageWidth*imageHeight     +2)
+                  ,*(bufferYuv420p + imageWidth*imageHeight*5/4 +2)
+                  
+                  ,*(bufferYuv420p + imageWidth*imageHeight     +3)
+                  ,*(bufferYuv420p + imageWidth*imageHeight*5/4 +3)
+                  
+                  
+                  );
         }
         
         
