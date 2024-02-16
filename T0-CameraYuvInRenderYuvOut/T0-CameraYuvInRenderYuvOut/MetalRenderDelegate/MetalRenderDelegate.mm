@@ -189,12 +189,12 @@ fragment float4 fragmentStage(
 
 typedef struct
 {
-    vector_float2 uv_Offset; //偏移量 1.0/Srcwidth, 1.0/Srcheight, isFlip?1.0:0.0
-    float rotateMode;
-    float isFullRange;
+    float  u_Offset;
+    vector_float2 u_ImgSize;
 } UniformBuffer ;
 
-
+// 参考公式: https://blog.csdn.net/m18612362926/article/details/127667954
+// 参考wiki: https://cloud.tencent.com/developer/article/1903469
 
 static const char* sRgbToYuv = R"(
 
@@ -202,19 +202,12 @@ static const char* sRgbToYuv = R"(
 #include <metal_stdlib>
 using namespace metal;
 
-//这里的转换公式是 601 full-range, 需要和上屏的时候的yuv->rgb对应
-constant static float3 COEF_full_Y = float3( 0.299f,  0.587f,  0.114f);
-constant static float3 COEF_full_U = float3(-0.169f, -0.331f,  0.5f);
-constant static float3 COEF_full_V = float3( 0.5f, -0.419f, -0.08100f);
-
 //这里的转换公式是 709 video-range, 需要和上屏的时候的yuv->rgb对应
-constant static float3 COEF_video_Y = float3( 0.183f,  0.614f,  0.062f);
-constant static float3 COEF_video_U = float3(-0.101f, -0.339f,  0.439f);
-constant static float3 COEF_video_V = float3( 0.439f, -0.399f, -0.040f);
+constant static float3 COEF_Y = float3( 0.183f,  0.614f,  0.062f);
+constant static float3 COEF_U = float3(-0.101f, -0.339f,  0.439f);
+constant static float3 COEF_V = float3( 0.439f, -0.399f, -0.040f);
 constant static float U_DIVIDE_LINE = 2.0f / 3.0f;
 constant static float V_DIVIDE_LINE = 5.0f / 6.0f;
-constant static float3 CONDITION_ = float3(U_DIVIDE_LINE, V_DIVIDE_LINE, 0.5);
-
 
 typedef struct
 {
@@ -230,9 +223,8 @@ typedef struct
 
 typedef struct
 {
-    vector_float2 uv_Offset; //偏移量 1.0/Srcwidth, 1.0/Srcheight, isFlip?1.0:0.0
-    float rotateMode;
-    float isFullRange;
+    float         u_Offset;
+    vector_float2 u_ImgSize;
 } UniformBuffer ;
 
 vertex VertexOut vertexStage(
@@ -251,64 +243,89 @@ vertex VertexOut vertexStage(
 fragment float4 fragmentStage(
                                      VertexOut in [[stage_in]],
                                      texture2d<float,access::sample> colorTex [[texture(0)]],
-                                     constant UniformBuffer* uniformbuffer [[buffer(0)]],
+                                     constant UniformBuffer& uniformbuffer [[buffer(0)]],
                                      sampler samplr [[sampler(0)]]
                                      )
 {
-
-    float2 uv_Offset  = uniformbuffer->uv_Offset;
-    float rotateMode  = uniformbuffer->rotateMode;
-    float isFullRange = uniformbuffer->isFullRange;
-
+    // uniform
+    float  u_Offset  = uniformbuffer.u_Offset;
+    float2 u_ImgSize = uniformbuffer.u_ImgSize;
+    
+    // varying
     float2 v_texCoord = in.texCoord;
 
-    float3 _condition = step(CONDITION_, v_texCoord.yyx);
+    // begin..
+    float2 texelOffset = float2(u_Offset, 0.0);
 
-    float isY = _condition.x; // true 0, false 1
-    float isU = isY * _condition.y;
-    float isLeft = _condition.z;
+    float4 outColor;
 
-    float2 _texCoord;
+    if(v_texCoord.y <= U_DIVIDE_LINE) {
+        //在纹理坐标 y < (2/3) 范围，需要完成一次对整个纹理的采样，
+        //一次采样（加三次偏移采样）4 个 RGBA 像素（R,G,B,A）生成 1 个（Y0,Y1,Y2,Y3），整个范围采样结束时填充好 width*height 大小的缓冲区；
 
-    float isVertical = rotateMode == 270 ? 1.0 : (rotateMode == 90.0 ? 1.0 : 0.0);//1是竖屏， 0是横屏
+        float2 texCoord = float2(v_texCoord.x, v_texCoord.y * 3.0 / 2.0);
+        float4 color0 = colorTex.sample(samplr, texCoord);
+        float4 color1 = colorTex.sample(samplr, texCoord + texelOffset);
+        float4 color2 = colorTex.sample(samplr, texCoord + texelOffset * 2.0);
+        float4 color3 = colorTex.sample(samplr, texCoord + texelOffset * 3.0);
 
-    float2 uv_OffsetNew = isVertical * uv_Offset.yx + (1.0 - isVertical) * uv_Offset;
+        float y0 = dot(color0.rgb, COEF_Y) + 0.0625 ; // bt.709 video-range  16.0/256.0=0.0625
+        float y1 = dot(color1.rgb, COEF_Y) + 0.0625 ;
+        float y2 = dot(color2.rgb, COEF_Y) + 0.0625 ;
+        float y3 = dot(color3.rgb, COEF_Y) + 0.0625 ;
+        outColor = float4(y0, y1, y2, y3);
+    }
+    else if(v_texCoord.y <= V_DIVIDE_LINE) {
 
-    float _DIVIDE_LINE = (1.0 - isU) * U_DIVIDE_LINE + isU * V_DIVIDE_LINE;
-    float offsetY = 1.0 / 3.0 * uv_OffsetNew.y;
-    _texCoord.y = (1.0 - isY) * (v_texCoord.y * 3.0 / 2.0) + isY * (((v_texCoord.y - _DIVIDE_LINE) * 2.0 + isLeft * offsetY) * 3.0);
-    _texCoord.x = v_texCoord.x * (1.0 + isY) - isY * isLeft;
+        //当纹理坐标 y > (2/3) 且 y < (5/6) 范围，一次采样（加三次偏移采样）8 个 RGBA 像素（R,G,B,A）生成（U0,U1,U2,U3），
+        //又因为 U plane 缓冲区的宽高均为原图的 1/2 ，U plane 在垂直方向和水平方向的采样都是隔行进行，整个范围采样结束时填充好 width*height/4 大小的缓冲区。
 
-    float2 _offset = float2((1.0 + isY) * uv_OffsetNew.x, 0.0);
+        float offsetY = 1.0 / 3.0 / u_ImgSize.y;
+        float2 texCoord;
+        if(v_texCoord.x <= 0.5) {
+            texCoord = float2(v_texCoord.x * 2.0, (v_texCoord.y - U_DIVIDE_LINE) * 2.0 * 3.0);
+        }
+        else {
+            texCoord = float2((v_texCoord.x - 0.5) * 2.0, ((v_texCoord.y - U_DIVIDE_LINE) * 2.0 + offsetY) * 3.0);
+        }
 
+        float4 color0 = colorTex.sample(samplr, texCoord);
+        float4 color1 = colorTex.sample(samplr, texCoord + texelOffset * 2.0);
+        float4 color2 = colorTex.sample(samplr, texCoord + texelOffset * 4.0);
+        float4 color3 = colorTex.sample(samplr, texCoord + texelOffset * 6.0);
 
-    //竖屏如果是270度，说明需要顺时针旋转90恢复和输入一样的；90就顺时针旋转270
-    float2 _texCoordVer = rotateMode == 270.0 ? float2(_texCoord.y, abs(1.0 - _texCoord.x)) : float2(abs(1.0 - _texCoord.y), _texCoord.x);
-    float2 _offsetVer = rotateMode == 270.0 ? float2(_offset.y, (0.0 - _offset.x)) : _offset.yx;
+        float u0 = dot(color0.rgb, COEF_U) + 0.5;
+        float u1 = dot(color1.rgb, COEF_U) + 0.5;
+        float u2 = dot(color2.rgb, COEF_U) + 0.5;
+        float u3 = dot(color3.rgb, COEF_U) + 0.5;
+        outColor = float4(u0, u1, u2, u3);
+    }
+    else {
+        //当纹理坐标 y > (5/6) 范围，一次采样（加三次偏移采样）8 个 RGBA 像素（R,G,B,A）生成（V0,V1,V2,V3），
+        //同理，因为 V plane 缓冲区的宽高均为原图的 1/2 ，垂直方向和水平方向都是隔行采样，整个范围采样结束时填充好 width*height/4 大小的缓冲区。
 
-    //横屏如果是180度，说明需要顺时针旋转180恢复和输入一样的；0就不用转了
-    float2 _texCoordHon = rotateMode == 180.0 ? float2(abs(1.0 - _texCoord.x), abs(1.0 - _texCoord.y)) : _texCoord.xy;
-    float2 _offsetHon = rotateMode == 180.0 ? float2(0.0 - _offset.x, 0.0 - _offset.y) : _offset;
+        float offsetY = 1.0 / 3.0 / u_ImgSize.y;
+        float2 texCoord;
+        if(v_texCoord.x <= 0.5) {
+            texCoord = float2(v_texCoord.x * 2.0, (v_texCoord.y - V_DIVIDE_LINE) * 2.0 * 3.0);
+        }
+        else {
+            texCoord = float2((v_texCoord.x - 0.5) * 2.0, ((v_texCoord.y - V_DIVIDE_LINE) * 2.0 + offsetY) * 3.0);
+        }
 
-    float2 _texCoordFinal = isVertical * _texCoordVer + (1.0 - isVertical) * _texCoordHon;
-    float2 _offsetFinal = isVertical * _offsetVer + (1.0 - isVertical) * _offsetHon;
+        float4 color0 = colorTex.sample(samplr, texCoord);
+        float4 color1 = colorTex.sample(samplr, texCoord + texelOffset * 2.0);
+        float4 color2 = colorTex.sample(samplr, texCoord + texelOffset * 4.0);
+        float4 color3 = colorTex.sample(samplr, texCoord + texelOffset * 6.0);
 
-    float4 color0 = colorTex.sample(samplr, _texCoordFinal.xy);
-    float4 color1 = colorTex.sample(samplr, _texCoordFinal.xy +  _offsetFinal);
-    float4 color2 = colorTex.sample(samplr, _texCoordFinal.xy +  2.0 * _offsetFinal);
-    float4 color3 = colorTex.sample(samplr, _texCoordFinal.xy +  3.0 * _offsetFinal);
+        float v0 = dot(color0.rgb, COEF_V) + 0.5;
+        float v1 = dot(color1.rgb, COEF_V) + 0.5;
+        float v2 = dot(color2.rgb, COEF_V) + 0.5;
+        float v3 = dot(color3.rgb, COEF_V) + 0.5;
+        outColor = float4(v0, v1, v2, v3);
+    }
 
-    float3 _COEF_full = (1.0 - isY) * COEF_full_Y + isY * ((1.0 - isU) * COEF_full_U + isU * COEF_full_V);
-    float3 _COEF_video = (1.0 - isY) * COEF_video_Y + isY * ((1.0 - isU) * COEF_video_U + isU * COEF_video_V);
-    float3 _COEF = isFullRange == 1.0 ? _COEF_full : _COEF_video;
-
-    float y0 = dot(color0.rgb, _COEF);
-    float y1 = dot(color1.rgb, _COEF);
-    float y2 = dot(color2.rgb, _COEF);
-    float y3 = dot(color3.rgb, _COEF);
-    float4 mainColor = float4(y0, y1, y2, y3) + isY * 0.5 + (1.0 - isFullRange) * (1.0 - isY) * 0.0625; // 16/256=0.0625
-    return mainColor ;
-
+    return outColor;
 }
 
 )";
@@ -477,9 +494,8 @@ fragment float4 fragmentStage(
     // uniform buffer // 写死参数 不旋转
     {
         UniformBuffer rgbToYuvUniformBuffer ;
-        rgbToYuvUniformBuffer.isFullRange = 0;
-        rgbToYuvUniformBuffer.rotateMode  = 0;
-        rgbToYuvUniformBuffer.uv_Offset = simd_make_float2(1.0/kWidth, 1.0/kHeight) ;
+        rgbToYuvUniformBuffer.u_ImgSize = simd_make_float2( kWidth,  kHeight) ;
+        rgbToYuvUniformBuffer.u_Offset  = 1.0 / kWidth;
         _uniformBuffer = [device newBufferWithBytes:&rgbToYuvUniformBuffer
                                              length:sizeof(rgbToYuvUniformBuffer)
                                             options:MTLResourceStorageModeShared|MTLResourceCPUCacheModeWriteCombined];
