@@ -103,13 +103,13 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
 
 -(BOOL) openCamera:(id<MTLDevice>) device
 {
- 
+    
     // 创建AVCaptureSession、AVCaptureDeviceInput和AVCaptureVideoDataOutput，
     // 注意在创建AVCaptureVideoDataOutput时，需要指定内容格式； 同时需要设定采集的方向，否则图像会出现旋转
     
     _captureSession = [[AVCaptureSession alloc] init];
     _captureSession.sessionPreset = AVCaptureSessionPreset1280x720;
- 
+    
     
     // 数据回调到 单独的 串行队列
     _captureQueue = dispatch_queue_create("preview queue", DISPATCH_QUEUE_SERIAL);
@@ -117,8 +117,8 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     // This app has crashed because it attempted to access privacy-sensitive data without a usage description.
     // The app's Info.plist must contain an NSCameraUsageDescription key with a string value explaining to the user how the app uses this data.
     // 在target-info 增加 NSCameraUsageDescription (下拉菜单) Privacy - Camera Usage Description 访问相机
-     
-  
+    
+    
     AVCaptureDevice* inputCamera = nil;
     if (TRUE) {
         // 通过搜索 获取指定设备  AVCaptureDeviceDiscoverySession
@@ -132,7 +132,7 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
         for (AVCaptureDevice* camera in captureDevices)
         {
             if (camera.position == AVCaptureDevicePositionFront)
-            //if (camera.position == AVCaptureDevicePositionBack)   // 这里修改前后摄像头
+                //if (camera.position == AVCaptureDevicePositionBack)   // 这里修改前后摄像头
             {
                 inputCamera = camera;
                 break;
@@ -142,14 +142,14 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     } else {
         // 直接获取 给定类型的默认设备
         inputCamera = [AVCaptureDevice defaultDeviceWithDeviceType:AVCaptureDeviceTypeBuiltInWideAngleCamera
-                                           mediaType:AVMediaTypeVideo
-                                           position:AVCaptureDevicePositionBack];
+                                                         mediaType:AVMediaTypeVideo
+                                                          position:AVCaptureDevicePositionBack];
     }
     
     
     NSAssert(inputCamera != nil, @"Find Camera Fail");
     
- 
+    
     if (FALSE) {
         // iOS 摄像头采集; 420v（VideoRange）和420f（FullRange）的区别: 亮度和色差取值范围不一样 video只有 Y 16~235 UV 16~240
         // iOS 没有使用传统的 YUV，而是使用 YCbCr; YUV 和 YCbCr 的差异点，两者数据的标准不一样，YCbCr 有 ITU - R BT.601 & ITU - R BT.709 两个标准
@@ -173,7 +173,7 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
              */
         }];
     }
- 
+    
     
     
     // 打开设备
@@ -193,22 +193,22 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     
     // 数据输出
     _videoDataOutput = [[AVCaptureVideoDataOutput alloc] init];
-
+    
     if (FALSE) {
         NSArray<NSNumber*>* videoOutputFormats = [_videoDataOutput availableVideoCVPixelFormatTypes];
         [videoOutputFormats enumerateObjectsUsingBlock:^(NSNumber * _Nonnull num, NSUInteger idx, BOOL * _Nonnull stop) {
-                OSType type = num.unsignedIntValue;
-                uint8_t* fourcc = (uint8_t*) &type ;
-                if (type == kCVPixelFormatType_32BGRA ||
-                    type == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange ||
-                    type == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange) {
-                    NSLog(@"视频输出 只能RGBA或者Full/VideoRange的NV12 %c%c%c%c",fourcc[3],fourcc[2],fourcc[1],fourcc[0]);
-                } else {
-                    NSLog(@"视频输出其他格式 %c%c%c%c",fourcc[3],fourcc[2],fourcc[1],fourcc[0]);
-                }
+            OSType type = num.unsignedIntValue;
+            uint8_t* fourcc = (uint8_t*) &type ;
+            if (type == kCVPixelFormatType_32BGRA ||
+                type == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange ||
+                type == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange) {
+                NSLog(@"视频输出 只能RGBA或者Full/VideoRange的NV12 %c%c%c%c",fourcc[3],fourcc[2],fourcc[1],fourcc[0]);
+            } else {
+                NSLog(@"视频输出其他格式 %c%c%c%c",fourcc[3],fourcc[2],fourcc[1],fourcc[0]);
+            }
         }];
     }
- 
+    
     // YES 当调度队列处理已存在帧并卡在captureOutput:didOutputSampleBuffer:fromConnection:deleget方法时候 立刻丢弃当前捕捉的视频帧
     // NO  在丢弃新帧之前，会给委托提供更多时间来处理旧帧，但应用程序内存使用量可能因此显着增加。
     // 默认是YES
@@ -220,7 +220,8 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     // 所有委托方法都在指定的调度队列上调用。
     [_videoDataOutput setSampleBufferDelegate:self queue:_captureQueue];
     
- 
+    // kCVPixelFormatType_长度_序列顺序_{Planar|BiPlanar}{VideoRange|FullRange} ---- CbCr  Cb低地址 Cr在高地址
+    // kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
     
     // 输出pixel buffer的属性配置 (摄像头输出的CVPixelBuffer要兼容Metal 在MacOS上正常 ios上有warning)
     // https://stackoverflow.com/questions/46549906/cvmetaltexturecachecreatetexturefromimage-returns-6660-on-macos-10-13
@@ -275,8 +276,13 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
     // 控制摄像头的帧率
     [self setFrameRate:15];
 
-    NSLog(@"开始预览, 格式为 %@ 颜色空间为 %ld", [inputCamera activeFormat], (long)[inputCamera activeColorSpace]); // 默认情况是colorSpace=sRGB ??? 没有选P3
- 
+    // 默认情况是colorSpace=sRGB = 0  有4种"色域"输出:
+    // AVCaptureColorSpace_sRGB       = 0,
+    // AVCaptureColorSpace_P3_D65     = 1,
+    // AVCaptureColorSpace_HLG_BT2020 = 2,
+    // AVCaptureColorSpace_AppleLog   = 3,
+    NSLog(@"开始预览, 格式为 %@ 颜色空间为 %ld", [inputCamera activeFormat], (long)[inputCamera activeColorSpace]);
+        
     return YES;
 }
 
@@ -334,7 +340,7 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
 }
 
 
-static UInt64 getTime()
+-(UInt64) getTime
 {
     UInt64 timestamp = [[NSDate date] timeIntervalSince1970]*1000;
     return timestamp;
@@ -348,17 +354,17 @@ static UInt64 getTime()
     
     // 帧率统计  ------
     if (frameCount == -1) {
-        lastTime   = getTime();
+        lastTime   = [self getTime];
         frameCount = 0;
     } else {
         frameCount++;
         if (frameCount >= 180) {
            
-            UInt64 now = getTime();
+            UInt64 now = [self getTime];
             UInt64 duration = now - lastTime;
             NSLog(@"camera fps = %f", frameCount * 1000.0f / duration); // 可以通过setFrameRate控制摄像头帧率(预览之后也可以)
             frameCount = 0 ;
-            lastTime = getTime();
+            lastTime = [self getTime];
         }
     }
     // --------------

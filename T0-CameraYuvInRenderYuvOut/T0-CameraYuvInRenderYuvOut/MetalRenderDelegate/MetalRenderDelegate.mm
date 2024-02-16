@@ -63,6 +63,9 @@ static int kMtlTextureQueueSize = 3;
     
 }
 
+static const int kWidth  = 720 ;
+static const int kHeight = 1280;
+
 
 #pragma mark - shader type 共同部分
 typedef struct
@@ -95,33 +98,27 @@ typedef struct
 
 vertex VertexOut vertexStage(
                                 uint vid [[vertex_id]],
-                                constant MyVertex *vertexArr [[buffer(0)]],  // 第0个Buffer
-                                constant float&    _flipY    [[buffer(1)]]
+                                constant MyVertex *vertexArr [[buffer(0)]]     // 第0个Buffer
+                                //, constant float&    _flipY    [[buffer(1)]]   // 第1个Buffer
                                 )
 {
     float3 a_position = vertexArr[vid].a_position;
     float2 a_uv = vertexArr[vid].a_uv;
 
     VertexOut out ;
-    float4 postion = vector_float4(a_position, 1.0);
-    out.pos = postion ;
-
-    float condition = step(0.0,  _flipY);
-    float x_hon = abs(_flipY - a_uv.y);
-    float y_hon = abs(1.0- _flipY - a_uv.x);
-    float x_ver = abs(_flipY + 1.0) * abs(1.0 - a_uv.x) + abs(_flipY + 2.0) * a_uv.x;
-    float y_ver = abs(_flipY + 1.0) * abs(1.0 - a_uv.y) + abs(_flipY + 2.0) * a_uv.y;
-    float2 v_texCord = vector_float2(condition * x_hon + (1.0 - condition) * x_ver, condition * y_hon + (1.0 - condition) * y_ver);
-    v_texCord.x = 1.0 - v_texCord.x ; // metal .y
-    out.texCoord = v_texCord ;
+    out.pos      = vector_float4(a_position, 1.0);
+    out.texCoord = vector_float2(a_uv.x,  a_uv.y);
     
     return out ;
 }
 
+// 直接改了纹理坐标
+// v_texCord.x = 1.0 - v_texCord.x ; // metal .y
 
-constant float3x3 bt601_fullrange = float3x3(1.0, 1.0, 1.0,  0.0, - 0.344, 1.77,   1.403, - 0.714, 0.0);
 
-constant float3x3 bt709_videorange = float3x3(1.0, 1.0, 1.0, 0.0, -0.187, 1.856, 1.575, -0.468, 0.0);
+constant float3x3 bt601_fullrange = float3x3(1.0, 1.0, 1.0,     0.0, - 0.344, 1.77,     1.403, - 0.714, 0.0);
+
+constant float3x3 bt709_videorange = float3x3(1.164, 1.164, 1.164,    0.0, -0.213, 2.114,     1.792, -0.534, 0.0);
 
 fragment float4 fragmentStage(
                                  const VertexOut in [[stage_in]],
@@ -131,7 +128,7 @@ fragment float4 fragmentStage(
                                  )
 {
 
-    float y   = yTex.sample(samplr, in.texCoord).r;
+    float y   = yTex.sample(samplr, in.texCoord).r - 0.0625; // 16/256=0.0625   128/256=0.5
     float2 uv = vuTex.sample(samplr, in.texCoord).rg - vector_float2(0.5); // metal .ar
     float3 yuvNv21   = vector_float3(y, uv);
     float4 fragColor = vector_float4(bt709_videorange * yuvNv21, 1.0);
@@ -211,9 +208,9 @@ constant static float3 COEF_full_U = float3(-0.169f, -0.331f,  0.5f);
 constant static float3 COEF_full_V = float3( 0.5f, -0.419f, -0.08100f);
 
 //这里的转换公式是 709 video-range, 需要和上屏的时候的yuv->rgb对应
-constant static float3 COEF_video_Y = float3( 0.2126f,  0.7152f,  0.0722f);
-constant static float3 COEF_video_U = float3(-0.1146f, -0.3854f,  0.5f);
-constant static float3 COEF_video_V = float3( 0.5f, -0.4542f, -0.0458f);
+constant static float3 COEF_video_Y = float3( 0.183f,  0.614f,  0.062f);
+constant static float3 COEF_video_U = float3(-0.101f, -0.339f,  0.439f);
+constant static float3 COEF_video_V = float3( 0.439f, -0.399f, -0.040f);
 constant static float U_DIVIDE_LINE = 2.0f / 3.0f;
 constant static float V_DIVIDE_LINE = 5.0f / 6.0f;
 constant static float3 CONDITION_ = float3(U_DIVIDE_LINE, V_DIVIDE_LINE, 0.5);
@@ -309,7 +306,7 @@ fragment float4 fragmentStage(
     float y1 = dot(color1.rgb, _COEF);
     float y2 = dot(color2.rgb, _COEF);
     float y3 = dot(color3.rgb, _COEF);
-    float4 mainColor = float4(y0, y1, y2, y3) + isY * 0.5;
+    float4 mainColor = float4(y0, y1, y2, y3) + isY * 0.5 + (1.0 - isFullRange) * (1.0 - isY) * 0.0625; // 16/256=0.0625
     return mainColor ;
 
 }
@@ -366,8 +363,7 @@ fragment float4 fragmentStage(
 
 -(void) _setupRender:(id<MTLDevice>) device WithView:(MetalView*)view
 {
-    const int kWidth  = 720 ;
-    const int kHeight = 1280;
+
     
     // yuv2rgb
     {
@@ -459,12 +455,12 @@ fragment float4 fragmentStage(
     // attribute buffer
     {
         MyVertex vertexData[] = {
-            {{1.0f,  1.0f,  0.0f},  {1.0f, 1.0f}},
-            {{1.0f, -1.0f,  0.0f},  {1.0f, 0.0f}},
-            {{-1.0f,  1.0f, 0.0f},  {0.0f, 1.0f}},
-            {{ 1.0f, -1.0f, 0.0f},  {1.0f, 0.0f}},
-            {{-1.0f, -1.0f, 0.0f},  {0.0f, 0.0f}},
-            {{-1.0f,  1.0f, 0.0f},  {0.0f, 1.0f}},
+            {{1.0f,  1.0f,  0.0f},  {1.0f, 0.0f}},
+            {{1.0f, -1.0f,  0.0f},  {1.0f, 1.0f}},
+            {{-1.0f,  1.0f, 0.0f},  {0.0f, 0.0f}},
+            {{ 1.0f, -1.0f, 0.0f},  {1.0f, 1.0f}},
+            {{-1.0f, -1.0f, 0.0f},  {0.0f, 1.0f}},
+            {{-1.0f,  1.0f, 0.0f},  {0.0f, 0.0f}},
         };
         
         // MTLResourceCPUCacheModeWriteCombined 写组合CPU缓存模式，针对CPU写入但从不读取的资源进行了优化
@@ -562,17 +558,122 @@ static UInt64 getTime()
         }
     }
     // --------------
+    
+    // 覆盖原来摄像头数据
+    if (FALSE) {
+        
+        NSAssert( CVPixelBufferGetPlaneCount(pixelBuffer) == 2, @"Plane Count != 2" );
+        
+        CVPixelBufferLockBaseAddress(pixelBuffer, 0);
+        uint8_t* yBase  = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
+        uint8_t* uvBase = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
+        
+        int imageWidth  = (int)CVPixelBufferGetWidth(pixelBuffer); // 720
+        int imageHeight = (int)CVPixelBufferGetHeight(pixelBuffer);// 1280
+        
+        int y_stride  = (int)CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0); // 768 -- 64字节对齐
+        int uv_stride = (int)CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1); // 768
+       
+        int y_width   = (int)CVPixelBufferGetWidthOfPlane (pixelBuffer, 0); // 720
+        int y_height  = (int)CVPixelBufferGetHeightOfPlane(pixelBuffer, 0); // 1280
+        int uv_width  = (int)CVPixelBufferGetWidthOfPlane (pixelBuffer, 1); // 360
+        int uv_height = (int)CVPixelBufferGetHeightOfPlane(pixelBuffer, 1); // 640
+        
+       
+        //NSAssert(y_stride  == imageWidth, @"y_stride %d != imageWidth %d", y_stride, imageWidth);
+        //NSAssert(uv_stride == imageWidth, @"uv_stride %d != imageWidth %d", uv_stride, imageWidth);
+        static bool logOnce1 = false;
+        if (logOnce1) {
+            logOnce1 = false ;
+            
+            int R = 220; //100;
+            int G = 50;  // 150;
+            int B = 10; // 200
+            float Y  = 16 + 0.183 * R + 0.614 * G + 0.062 * B;
+            float Cb =128 - 0.101 * R - 0.339 * G + 0.439 * B;
+            float Cr =128 + 0.439 * R - 0.399 * G - 0.040 * B;
+            
+//            int Y1  = (int)Y;
+//            int Cb1 = (int)Cb;
+//            int Cr1 = (int)Cr;
+            
+//            float Y1  = Y;
+//            float Cb1 = Cb;
+//            float Cr1 = Cr;
+                
+            int Y1  = roundf(Y);
+            int Cb1 = roundf(Cb);
+            int Cr1 = roundf(Cr); 
+            // roundf > float > int
+            // roundf  之后  转换成RGB 直接int或者roundf 都是对的
+            // float 直接计算 转换成RGB 直接int是有-1误差 roundf是对的
+            // int   截断之后 转换成RGB 有比较大误差 -4
+ 
+            NSLog(@"Y:%f(%d), Cb:%f(%d), Cr:%f(%d)", 
+                  Y , Y1 ,
+                  Cb, Cb1,
+                  Cr, Cr1
+                  );
+            
+            float R1 = 1.164 * (Y1 - 16)                       + 1.792 * (Cr1 - 128);
+            float G1 = 1.164 * (Y1 - 16) - 0.213 * (Cb1 - 128) - 0.534 * (Cr1 - 128);
+            float B1 = 1.164 * (Y1 - 16) + 2.114 * (Cb1 - 128);
+            
+            NSLog(@"R:%d,G:%d,B:%d -> %d,%d,%d(float=%f,%f,%f)(roundf=%d %d %d)",
+                  R, G, B,
+                  (int)R1, (int)G1, (int)B1,
+                  R1, G1, B1,
+                  (int)roundf(R1), (int)roundf(G1), (int)roundf(B1)
+                  );
+            
+        }
+        
+        int R = 211;
+        int G = 240;
+        int B = 235;
+        float Y  = 16 + 0.183 * R + 0.614 * G + 0.062 * B;
+        float Cb =128 - 0.101 * R - 0.339 * G + 0.439 * B;
+        float Cr =128 + 0.439 * R - 0.399 * G - 0.040 * B;
+        NSAssert( (Y >= 0 && Y <= 255)
+                 && (Cb >= 0 && Cb <= 255)
+                 && (Cr >= 0 && Cr <= 255),
+                 @"out of range %f %f %f", Y, Cb, Cr);
+        
+        uint8_t overrideY  = (uint32_t)Y;//87u;//138u; // metal shader按照除以255归一化 119/255 = 0.4666..
+        uint8_t overrideCb = (uint32_t)Cb;//93u;//154u; // (Y:119,Cb:34,Cr:51)可能不是有效的YCbCr组合,转换成RGB会得到某些分量是负数(R和G是负数 截断成0)
+        uint8_t overrideCr = (uint32_t)Cr;//204u;//104u;
+        
+        // override y :
+        memset(yBase, overrideY, y_stride * y_height);
+
+        // override uv:
+        // kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange  ios是小端（低字节在低位/低地址)  从低地址--高地址: YYYYY--CbCrCbCr  Cr是高地址
+        uint16_t uv = ((uint16_t)overrideCr << 8) + (uint16_t)overrideCb;
+        uint16_t* uvBase16 = (uint16_t*)uvBase;
+        for (int j = 0; j < uv_height; j++)
+        {
+            for (int i = 0; i < uv_stride / 2; i++ ) // uv_width = 360  uv_stride/2 = 768/2 = 384  多了24个像素  每个像素2个字节(分别存放u和v)
+            {
+                *(uvBase16++) = uv;
+            }
+        }
+
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+    }
 
     
     size_t width  = CVPixelBufferGetWidth(pixelBuffer);
     size_t height = CVPixelBufferGetHeight(pixelBuffer);
     
-    if (FALSE) {
+    static bool logOnce = true ;
+    if (logOnce) {
+        logOnce = false ;
+        
         CFStringRef colorAttachments = (CFStringRef)CVBufferCopyAttachment(pixelBuffer, kCVImageBufferYCbCrMatrixKey, NULL);
         if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_601_4, 0) == kCFCompareEqualTo) {
-            //NSLog(@"BT.601 颜色空间");
+            NSLog(@"BT.601 颜色空间");
         } else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_709_2, 0) == kCFCompareEqualTo) {
-            //NSLog(@"BT.709 颜色空间");
+            NSLog(@"BT.709 颜色空间");
         } else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_2020, 0) == kCFCompareEqualTo) {
             NSLog(@"BT.2020 颜色空间");
         //} else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_DCI_P3, 0) == kCFCompareEqualTo) {
@@ -599,7 +700,7 @@ static UInt64 getTime()
     NSAssert(uvResult == kCVReturnSuccess ,@"create uv texture fail");
     
     
-    CVBufferRelease(pixelBuffer);
+    //CVBufferRelease(pixelBuffer);
     
     id<MTLTexture> yTexture  = CVMetalTextureGetTexture(yMetalTextureRef);
     id<MTLTexture> uvTexture = CVMetalTextureGetTexture(uvMetalTextureRef);
@@ -617,7 +718,7 @@ static UInt64 getTime()
         encoder.label = @"nv2rgb";
         [encoder setRenderPipelineState:_pipelineStateYuv2Rgb];
         [encoder setVertexBuffer:_attributeBuffer offset:0 atIndex:0];
-        [encoder setVertexBuffer:_uniformBufferYuv2Rgb offset:0 atIndex:1];
+        //[encoder setVertexBuffer:_uniformBufferYuv2Rgb offset:0 atIndex:1];
         [encoder setFragmentSamplerState:_samplerState atIndex:0];
         [encoder setFragmentTexture:yTexture  atIndex:0];
         [encoder setFragmentTexture:uvTexture atIndex:1];
@@ -632,7 +733,7 @@ static UInt64 getTime()
         [commandBuffer commit];
     }
 
-
+    std::vector<uint8_t> yuv420p(width*height*3/2, 0);
     // RGB to YUV
     {
         MTLRenderPassDescriptor* renderPass = [[MTLRenderPassDescriptor alloc] init];
@@ -655,7 +756,74 @@ static UInt64 getTime()
         [commandBuffer commit];
         [commandBuffer waitUntilCompleted];
         
-        // TODO 读取 比较 yuv 是否一致
+        // 读取 yuv420p
+        [_yuv420pTexture getBytes:yuv420p.data()  
+                      bytesPerRow:_yuv420pTexture.width * 4 // 必须乘以4 rgba
+                       fromRegion:MTLRegionMake2D(0, 0, _yuv420pTexture.width, _yuv420pTexture.height)
+                      mipmapLevel:0];
+    }
+    
+    // 比较 yuv 是否一致
+    {
+        
+        int imageWidth  = (int)CVPixelBufferGetWidth(pixelBuffer);
+        int imageHeight = (int)CVPixelBufferGetHeight(pixelBuffer);
+        
+        int y_stride  = (int)CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
+        int uv_stride = (int)CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1);
+       
+        int y_width   = (int)CVPixelBufferGetWidthOfPlane (pixelBuffer, 0);
+        int y_height  = (int)CVPixelBufferGetHeightOfPlane(pixelBuffer, 0);
+        int uv_width  = (int)CVPixelBufferGetWidthOfPlane (pixelBuffer, 1);
+        int uv_height = (int)CVPixelBufferGetHeightOfPlane(pixelBuffer, 1);
+        
+        if (FALSE) {
+            NSLog(@"buffer width=%d, height=%d, y_stride=%d, uv_stride=%d, y_width=%d, y_height=%d, uv_width=%d, uv_height=%d",
+                  imageWidth, imageHeight,
+                  y_stride, uv_stride,
+                  y_width, y_height,
+                  uv_width, uv_height);
+        }
+
+        // 原来的nv21
+        CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+        uint8_t* yDestPlane  = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
+        uint8_t* uvDestPlane = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
+        NSAssert(yDestPlane != nullptr && uvDestPlane != nullptr, @"CVPixelBufferGetBaseAddressOfPlane fail %p, %p", yDestPlane, uvDestPlane);
+        
+
+        // 读取渲染后的yuv420p
+        uint8_t* bufferYuv420p = yuv420p.data();
+        
+        if (TRUE) {
+            NSLog(@"nv21:y:%u, u:%u, v:%u", *yDestPlane,
+                                        *(uvDestPlane),
+                                        *(uvDestPlane+1));
+            NSLog(@"yuv420:y:%u, u:%u, v:%u", *bufferYuv420p,
+                                        *(bufferYuv420p + imageWidth*imageHeight),
+                                        *(bufferYuv420p + imageWidth*imageHeight*5/4));
+        }
+        
+        
+        
+        uint8_t* srcItor = bufferYuv420p;
+        uint8_t* dstItor = yDestPlane;
+        int maxValue = 0 ;
+        int k = 0;
+        for( ; srcItor < bufferYuv420p + imageWidth * imageHeight  ; srcItor++,  dstItor++, k++) // 要考虑对齐
+        {
+            int diff = abs( (int)(*srcItor) - (int)(*dstItor)   );
+            if (diff > maxValue) {
+                maxValue = diff ;
+            }
+        }
+        NSLog(@"%s: maxValue = %d", __FUNCTION__, maxValue);
+        
+        
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+        
+        CVBufferRelease(pixelBuffer);
+        
     }
     
     // RGB to Screen
