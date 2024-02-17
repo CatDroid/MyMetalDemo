@@ -460,8 +460,9 @@ fragment float4 fragmentStage(
         // fastMathEnabled 一个布尔值，指示编译器是否可以对可能违反 IEEE 754 标准的浮点算术执行优化。
         // 默认值为“YES”。 YES 值还启用 单精度浮点标量和向量类型的 数学函数的高精度变体(high-precision variant)。
         
-        MTLCompileOptions* options = [MTLCompileOptions new];
-        options.fastMathEnabled = NO;
+        //MTLCompileOptions* options = [MTLCompileOptions new];
+        //options.fastMathEnabled = NO;
+        MTLCompileOptions* options =  nil;
         
         id <MTLLibrary> library = [device newLibraryWithSource:shaderString options:options error:&errors];
         NSAssert(library != nil ,@"Compile Error %s", [[errors description] UTF8String]);
@@ -594,7 +595,7 @@ static UInt64 getTime()
     // --------------
     
     // 覆盖原来摄像头数据
-    if (FALSE) {
+    if (TRUE) {
         
         NSAssert( CVPixelBufferGetPlaneCount(pixelBuffer) == 2, @"Plane Count != 2" );
         
@@ -613,9 +614,6 @@ static UInt64 getTime()
         int uv_width  = (int)CVPixelBufferGetWidthOfPlane (pixelBuffer, 1); // 360
         int uv_height = (int)CVPixelBufferGetHeightOfPlane(pixelBuffer, 1); // 640
         
-       
-        //NSAssert(y_stride  == imageWidth, @"y_stride %d != imageWidth %d", y_stride, imageWidth);
-        //NSAssert(uv_stride == imageWidth, @"uv_stride %d != imageWidth %d", uv_stride, imageWidth);
         static bool logOnce1 = false;
         if (logOnce1) {
             logOnce1 = false ;
@@ -660,12 +658,17 @@ static UInt64 getTime()
                   (int)roundf(R1), (int)roundf(G1), (int)roundf(B1)
                   );
             
+            // RGB                 YCbCr
+            // 230  90  50    ---  116 96 191
+            // 211 240  235   ---  216 128 115
+            
         }
         
-        // RGB                 YCbCr
-        // 230  90  50    ---  116 96 191
-        // 211 240  235   ---  216 128 115
+    
+#define CASE 2  // 选择不同的override方案
         
+        
+#if CASE == 0 // 替换成单独颜色 RGB转成NV12 (bt.709 video range)
         int R = 211;
         int G = 240;
         int B = 235;
@@ -682,54 +685,182 @@ static UInt64 getTime()
         uint8_t overrideCr = (uint32_t)Cr;//204u;//104u;
         
         
-        overrideY  = 216u; // 0.847 058 216.0/255.0=0.847058 (这里除255而不是256, 截断后面而不是四舍五入)
-        overrideCb = 128u; // 0.501 960
-        overrideCr = 115u; // 0.450 980
-    
+
         
-        uint8_t overrideY2  =  116u; // 0.454 901
-        uint8_t overrideCb2 =  96u;  // 0.376 470
-        uint8_t overrideCr2 = 191u;  // 0.749 019
+        static const uint8_t Y1  = 216u ;// 0.847 058 8// 4个像素 不同的亮度(Y)
+        static const uint8_t Y2  = 210u ;// 0.823 529 4
+        static const uint8_t Y3  = 213u ;// 0.835 294 1
+        static const uint8_t Y4  = 209u ;// 0.819 607 8
         
-        // kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange  ios是小端（低字节在低位/低地址)  从低地址--高地址: YYYYY--CbCrCbCr  Cr是高地址
-        uint16_t y   = ((uint16_t)overrideY << 8)   + (uint16_t)overrideY;
-        uint16_t y2  = ((uint16_t)overrideY2 << 8)  + (uint16_t)overrideY2;
-        uint16_t uv  = ((uint16_t)overrideCr << 8)  + (uint16_t)overrideCb;
-        uint16_t uv2 = ((uint16_t)overrideCr2 << 8) + (uint16_t)overrideCb2;
+        static const uint8_t U1  = 128u ;// 0.501 960 7
+        static const uint8_t U2  = 119u ;// 0.466 666 6
+        static const uint8_t U3  = 125u ;// 0.490 196 0
+        static const uint8_t U4  = 120u ;// 0.470 588 2
         
-        NSLog(@"override  %u %u %u - %u %u %u ",
-              overrideY,  overrideCb,  overrideCr,
-              overrideY2, overrideCb2, overrideCr2
-              );
+        static const uint8_t V1  = 115u ;// 0.450 980 3
+        static const uint8_t V2  = 109u ;// 0.427 450 9
+        static const uint8_t V3  = 118u ;// 0.462 745 0
+        static const uint8_t V4  = 100u ;// 0.392 156 8
         
-//#define ONE_COLOR 1
+        typedef struct {
+            uint8_t Y;
+            uint8_t Cb;
+            uint8_t Cr;
+        } YUVData;
+        
+        static const YUVData yuvTestArray[] = {
+            {Y1,  U1,  V1},
+            {Y1,  U2,  V2},
+            {Y1,  U3,  V3},
+            {Y1,  U4,  V4},
+            
+            {Y2,  U1,  V1},
+            {Y2,  U2,  V2},
+            {Y2,  U3,  V3},
+            {Y2,  U4,  V4},
+            
+            {Y3,  U1,  V1},
+            {Y3,  U2,  V2},
+            {Y3,  U3,  V3},
+            {Y3,  U4,  V4},
+            
+            {Y4,  U1,  V1},
+            {Y4,  U2,  V2},
+            {Y4,  U3,  V3},
+            {Y4,  U4,  V4},
+        };
+        
+        static int sIndex = 0;
+        
+        const YUVData& data = yuvTestArray[sIndex];
+        
+        sIndex = (++sIndex) % (sizeof(yuvTestArray)/sizeof(yuvTestArray[0]));
+       
+        overrideY  = data.Y ;
+        overrideCb = data.Cb;
+        overrideCr = data.Cr;
+        
+        NSLog(@"override %u,%u,%u", overrideY, overrideCb, overrideCr);
+
         
         // override y :
-#if ONE_COLOR
         memset(yBase, overrideY, y_stride * y_height);
-#else
-        uint16_t* yBase16 = (uint16_t*)yBase;
+        
+        // override uv:
+        uint16_t uv  = ((uint16_t)overrideCr << 8)  + (uint16_t)overrideCb; // YpCbCr--Cb在低地址--ios小端
+        uint16_t* uvBase16 = (uint16_t*)uvBase;
+        for (int j = 0; j < uv_height; j++)
+        {
+            // 考虑64字节对齐
+            // uv_width = 360  uv_stride/2 = 768/2 = 384  多了24个像素  每个像素2个字节(分别存放u和v)
+            for (int i = 0; i < uv_stride / 2; i++ )
+            {
+                *(uvBase16++) = uv;
+ 
+            }
+        }
+#elif CASE == 1
+        // Y1 Y1 Y2 Y2   Y1 Y1 Y2 Y2
+        // Y1 Y1 Y2 Y2   Y1 Y1 Y2 Y2
+        // U1    V1      U2    V2
+        // Y1 Y1 Y2 Y2   Y1 Y1 Y2 Y2
+        // Y1 Y1 Y2 Y2   Y1 Y1 Y2 Y2
+        // U1    V1      U2    V2
+        
+        // 两种颜色 (Y1 U1 V1)   (Y2 U2 V2)
+        
+        uint8_t Y1 = 216u; //Y  0.847 058 216.0/255.0=0.847058(这里除255而不是256, 截断后面而不是四舍五入)
+        uint8_t U1 = 128u; //Cb 0.501 960
+        uint8_t V1 = 115u; //Cr 0.450 980
+    
+
+        uint8_t Y2 =  116u; //Y  0.454 901
+        uint8_t U2 =  96u;  //Cb 0.376 470
+        uint8_t V2 = 191u;  //Cr 0.749 019
+        
+        // kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange  ios是小端（低字节在低位/低地址)  从低地址--高地址: YYYYY--CbCrCbCr  Cr是高地址
+        uint16_t y   = ((uint16_t)Y1 << 8)   + (uint16_t)Y1;
+        uint16_t y2  = ((uint16_t)Y2 << 8)  + (uint16_t)Y2;
+        uint16_t uv  = ((uint16_t)V1 << 8)  + (uint16_t)U1;
+        uint16_t uv2 = ((uint16_t)V2 << 8) + (uint16_t)U2;
+        
+        
+        NSLog(@"override  %u %u %u - %u %u %u ",
+              Y1, U1, V1,
+              Y2, U2, V2
+              );
+        
+
+        uint8_t* yBase8 = (uint8_t*)yBase;
         for (int j = 0 ; j < y_height; j++)
         {
             for (int i = 0; i < y_stride / 2; i++ )
             {
-                *(yBase16++) = i % 2 == 0 ? y : y2;
+                *(uint16_t*)(yBase8 + j * y_stride + i * 2 ) = i % 2 == 0 ? y : y2;
             }
         }
-#endif
+ 
         // override uv:
-        uint16_t* uvBase16 = (uint16_t*)uvBase;
+        uint8_t* uvBase8 = (uint8_t*)uvBase;
         for (int j = 0; j < uv_height; j++)
         {
             for (int i = 0; i < uv_stride / 2; i++ ) // uv_width = 360  uv_stride/2 = 768/2 = 384  多了24个像素  每个像素2个字节(分别存放u和v)
             {
-#if ONE_COLOR
-                *(uvBase16++) = uv;
-#else
-                *(uvBase16++) = i % 2 == 0 ? uv : uv2;
-#endif
+                *(uint16_t*)(uvBase8 + j * uv_stride + i * 2) = i % 2 == 0 ? uv : uv2;
             }
         }
+        
+#elif CASE == 2
+        
+        // Y1 Y2 Y1 Y2   Y1 Y2 Y1 Y2
+        // Y3 Y4 Y3 Y4   Y3 Y4 Y3 Y4
+        // U1 V1 U2 V2   U1 V1 U2 V2
+        
+        // Y1 Y2 Y1 Y2   Y1 Y2 Y1 Y2
+        // Y3 Y4 Y3 Y4   Y3 Y4 Y3 Y4
+        // U3 V3 U4 V4   U3 V3 U4 V4
+        uint8_t Y1  = 216u; // 4个像素 不同的亮度(Y)
+        uint8_t Y2  = 210u ;
+        uint8_t Y3  = 213u ;
+        uint8_t Y4  = 209u ;
+        
+        uint8_t U1  = 128u;
+        uint8_t U2  = 119u ;
+        uint8_t U3  = 125u ;
+        uint8_t U4  = 120u ;
+        
+        uint8_t V1  = 115u;
+        uint8_t V2  = 109u ;
+        uint8_t V3  = 118u ;
+        uint8_t V4  = 100u ;
+        
+        
+        uint32_t y1  = ((uint32_t)Y2 << 24) + ((uint32_t)Y1 << 16) + ((uint32_t)Y2 << 8) + (uint32_t)Y1;
+        uint32_t y2  = ((uint32_t)Y4 << 24) + ((uint32_t)Y3 << 16) + ((uint32_t)Y4 << 8) + (uint32_t)Y3;
+        uint32_t uv  = ((uint32_t)V2 << 24) + ((uint32_t)U2 << 16) + ((uint32_t)V1 << 8) + (uint32_t)U1;
+        uint32_t uv2 = ((uint32_t)V4 << 24) + ((uint32_t)U4 << 16) + ((uint32_t)V3 << 8) + (uint32_t)U3;
+        
+        uint8_t* yBase8 = (uint8_t*)yBase;
+        for (int j = 0 ; j < y_height; j++)
+        {
+            for (int i = 0; i < y_stride / 4; i++ )
+            {
+                *(uint32_t*)(yBase8 + j * y_stride + i * 4) = (j % 2 == 0 ? y1 : y2);
+            }
+        }
+ 
+        // override uv:
+        uint8_t* uvBase8 = (uint8_t*)uvBase;
+        for (int j = 0; j < uv_height; j++)
+        {
+            for (int i = 0; i < uv_stride / 4; i++ )
+            {
+ 
+                *(uint32_t*)(uvBase8 + j * uv_stride + i * 4 ) = (j % 2 == 0 ? uv : uv2);
+            }
+        }
+ 
+#endif
 
         CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
     }
@@ -917,7 +1048,8 @@ static UInt64 getTime()
         if (TRUE) {
             uint8_t* yuv420pItor = bufferYuv420p;
             uint8_t* nv12Itor    = yDestPlane;
-            int maxValue = 0 ;
+            int maxValue  = 0 ;
+            int diffCount = 0;
             for(int i = 0 ; i < imageHeight ; i++)
             {
                 for(int j = 0; j < imageWidth ; j++)
@@ -925,6 +1057,7 @@ static UInt64 getTime()
                     uint8_t yuv420pixel = *(yuv420pItor + imageWidth * i + j );
                     uint8_t nv12pixel   = *(nv12Itor    + y_stride   * i + j ); // 要考虑对齐
                     int diff = abs((int)(yuv420pixel ) - (int)(nv12pixel));
+                    if (diff > 0) diffCount++;
                     if (diff > maxValue) {
                         maxValue = diff ;
                         NSLog(@"%s: maxValue up to %d; coord (%d, %d) ; yuv420p %u nv12 %u "
@@ -938,10 +1071,15 @@ static UInt64 getTime()
                     }
                 }
             }
-            NSLog(@"%s: y-maxValue = %d", __FUNCTION__, maxValue);
+            NSLog(@"%s: y-maxValue = %d diffCount = %d total = %d"
+                  , __FUNCTION__
+                  , maxValue
+                  , diffCount
+                  , imageHeight*imageWidth
+                  );
         }
 
-        if (FALSE) {
+        if (TRUE) {
             
             uint8_t* yuv420p_cbBase = bufferYuv420p + imageWidth * imageHeight ;
             uint8_t* yuv420p_crBase = bufferYuv420p + imageWidth * imageHeight * 5 / 4;
