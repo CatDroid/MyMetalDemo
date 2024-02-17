@@ -43,7 +43,6 @@ static int kMtlTextureQueueSize = 3;
     
     id <MTLBuffer>          _attributeBuffer;
     id <MTLBuffer>          _uniformBuffer  ;
-    id <MTLBuffer>          _uniformBufferYuv2Rgb;
     id <MTLTexture>         _rgbaTexture    ;
     id <MTLTexture>         _yuv420pTexture ;
     id <MTLSamplerState>    _samplerState   ;
@@ -189,8 +188,9 @@ fragment float4 fragmentStage(
 
 typedef struct
 {
-    float  u_Offset;
+    vector_float2 u_Offset;
     vector_float2 u_ImgSize;
+    vector_float2 u_TargetSize;
 } UniformBuffer ;
 
 // 参考公式: https://blog.csdn.net/m18612362926/article/details/127667954
@@ -223,8 +223,9 @@ typedef struct
 
 typedef struct
 {
-    float         u_Offset;
+    vector_float2 u_Offset;
     vector_float2 u_ImgSize;
+    vector_float2 u_TargetSize;
 } UniformBuffer ;
 
 vertex VertexOut vertexStage(
@@ -240,6 +241,9 @@ vertex VertexOut vertexStage(
     return out ;
 }
  
+// 片元坐标:90.5 FBO宽 180  归一化坐标 90.5/180=0.502 777 7778 但是metal debug看到值是0.502 777 7553
+// 导致了减去 0.5/180 = 0.002 777 7778
+// 0.502 777 7553 - 0.002 777 7778 != 0.5 (应该是 0.502 777 7778 - 0.002 777 7778)
 fragment float4 fragmentStage(
                                      VertexOut in [[stage_in]],
                                      texture2d<float,access::sample> colorTex [[texture(0)]],
@@ -248,22 +252,30 @@ fragment float4 fragmentStage(
                                      )
 {
     // uniform
-    float  u_Offset  = uniformbuffer.u_Offset;
-    float2 u_ImgSize = uniformbuffer.u_ImgSize;
+    float  u_Offset  = uniformbuffer.u_Offset.x; // 纹理-每个纹素-归一化后的大小
+    float2 u_ImgSize = uniformbuffer.u_ImgSize;  // 纹理-分辨率
+
+    float2 halfTagetSizeR = (uniformbuffer.u_TargetSize / 2.0); // fbo分辨率  0.5像素 归一化后的大小
+    float2 halfSrcSizeR   = (uniformbuffer.u_Offset     / 2.0); // 纹理纹素   0.5像素 归一化后的大小
     
+    // metal 输出float 0~1.0 到RGBA整数 是四舍五入 比如 0.92156*255=234.9978 读取纹理是235
+    // metal每个片元 插值坐标是 片元的中心点，不是左上角(OpenGL)
     // varying
-    float2 v_texCoord = in.texCoord;
+    float2 v_texCoord = in.texCoord - halfTagetSizeR;
 
     // begin..
     float2 texelOffset = float2(u_Offset, 0.0);
 
     float4 outColor;
 
-    if(v_texCoord.y <= U_DIVIDE_LINE) {
+    if (v_texCoord.y < U_DIVIDE_LINE) {
         //在纹理坐标 y < (2/3) 范围，需要完成一次对整个纹理的采样，
         //一次采样（加三次偏移采样）4 个 RGBA 像素（R,G,B,A）生成 1 个（Y0,Y1,Y2,Y3），整个范围采样结束时填充好 width*height 大小的缓冲区；
 
         float2 texCoord = float2(v_texCoord.x, v_texCoord.y * 3.0 / 2.0);
+       
+        texCoord += halfSrcSizeR; // 改为采样纹素的中心点
+
         float4 color0 = colorTex.sample(samplr, texCoord);
         float4 color1 = colorTex.sample(samplr, texCoord + texelOffset);
         float4 color2 = colorTex.sample(samplr, texCoord + texelOffset * 2.0);
@@ -275,19 +287,21 @@ fragment float4 fragmentStage(
         float y3 = dot(color3.rgb, COEF_Y) + 0.0625 ;
         outColor = float4(y0, y1, y2, y3);
     }
-    else if(v_texCoord.y <= V_DIVIDE_LINE) {
+    else if (v_texCoord.y < V_DIVIDE_LINE) {
 
         //当纹理坐标 y > (2/3) 且 y < (5/6) 范围，一次采样（加三次偏移采样）8 个 RGBA 像素（R,G,B,A）生成（U0,U1,U2,U3），
         //又因为 U plane 缓冲区的宽高均为原图的 1/2 ，U plane 在垂直方向和水平方向的采样都是隔行进行，整个范围采样结束时填充好 width*height/4 大小的缓冲区。
 
         float offsetY = 1.0 / 3.0 / u_ImgSize.y;
         float2 texCoord;
-        if(v_texCoord.x <= 0.5) {
-            texCoord = float2(v_texCoord.x * 2.0, (v_texCoord.y - U_DIVIDE_LINE) * 2.0 * 3.0);
+        if(v_texCoord.x < 0.5 - halfTagetSizeR.x ) { // 相当于直接用in.texCoord来判断 当前位置是否<0.5
+            texCoord = float2(v_texCoord.x * 2.0,         (v_texCoord.y - U_DIVIDE_LINE) * 2.0 * 3.0);
         }
         else {
             texCoord = float2((v_texCoord.x - 0.5) * 2.0, ((v_texCoord.y - U_DIVIDE_LINE) * 2.0 + offsetY) * 3.0);
         }
+
+        texCoord += halfSrcSizeR; // 改为采样纹素的中心点
 
         float4 color0 = colorTex.sample(samplr, texCoord);
         float4 color1 = colorTex.sample(samplr, texCoord + texelOffset * 2.0);
@@ -306,13 +320,15 @@ fragment float4 fragmentStage(
 
         float offsetY = 1.0 / 3.0 / u_ImgSize.y;
         float2 texCoord;
-        if(v_texCoord.x <= 0.5) {
+        if(v_texCoord.x < 0.5  - halfTagetSizeR.x ) {
             texCoord = float2(v_texCoord.x * 2.0, (v_texCoord.y - V_DIVIDE_LINE) * 2.0 * 3.0);
         }
         else {
             texCoord = float2((v_texCoord.x - 0.5) * 2.0, ((v_texCoord.y - V_DIVIDE_LINE) * 2.0 + offsetY) * 3.0);
         }
 
+        texCoord += halfSrcSizeR; // 改为采样纹素的中心点
+        
         float4 color0 = colorTex.sample(samplr, texCoord);
         float4 color1 = colorTex.sample(samplr, texCoord + texelOffset * 2.0);
         float4 color2 = colorTex.sample(samplr, texCoord + texelOffset * 4.0);
@@ -440,7 +456,14 @@ fragment float4 fragmentStage(
         NSError *errors;
         NSString* shaderString = [NSString stringWithUTF8String:sRgbToYuv];
         
-        id <MTLLibrary> library = [device newLibraryWithSource:shaderString options:nil error:&errors];
+        // https://developer.apple.com/documentation/metal/mtlcompileoptions/1515914-fastmathenabled?language=objc
+        // fastMathEnabled 一个布尔值，指示编译器是否可以对可能违反 IEEE 754 标准的浮点算术执行优化。
+        // 默认值为“YES”。 YES 值还启用 单精度浮点标量和向量类型的 数学函数的高精度变体(high-precision variant)。
+        
+        MTLCompileOptions* options = [MTLCompileOptions new];
+        options.fastMathEnabled = NO;
+        
+        id <MTLLibrary> library = [device newLibraryWithSource:shaderString options:options error:&errors];
         NSAssert(library != nil ,@"Compile Error %s", [[errors description] UTF8String]);
         
         id<MTLFunction> vertexFunction   = [library newFunctionWithName:@"vertexStage"];
@@ -494,22 +517,14 @@ fragment float4 fragmentStage(
     // uniform buffer // 写死参数 不旋转
     {
         UniformBuffer rgbToYuvUniformBuffer ;
-        rgbToYuvUniformBuffer.u_ImgSize = simd_make_float2( kWidth,  kHeight) ;
-        rgbToYuvUniformBuffer.u_Offset  = 1.0 / kWidth;
+        rgbToYuvUniformBuffer.u_ImgSize    = simd_make_float2( kWidth,         kHeight) ;
+        rgbToYuvUniformBuffer.u_Offset     = simd_make_float2( 1.0/kWidth,     1.0/kHeight);
+        rgbToYuvUniformBuffer.u_TargetSize = simd_make_float2( 1.0/(kWidth/4), 1.0/(kHeight*3/2) );
         _uniformBuffer = [device newBufferWithBytes:&rgbToYuvUniformBuffer
                                              length:sizeof(rgbToYuvUniformBuffer)
                                             options:MTLResourceStorageModeShared|MTLResourceCPUCacheModeWriteCombined];
     }
     
-    {
-        float flipLoc = -1.0 ;
-        _uniformBufferYuv2Rgb = [device newBufferWithBytes:&flipLoc 
-                                                    length:sizeof(flipLoc)
-                                                   options:MTLResourceStorageModeShared|MTLResourceCPUCacheModeWriteCombined] ;
-        // float* _flipLoc = (float*)_uniformBuffer.contents;
-        // *_flipLoc = flipLoc;
-        
-    }
     
     // off-screen rgb texture 写死参数 不旋转
     {
@@ -579,7 +594,7 @@ static UInt64 getTime()
     // --------------
     
     // 覆盖原来摄像头数据
-    if (TRUE) {
+    if (FALSE) {
         
         NSAssert( CVPixelBufferGetPlaneCount(pixelBuffer) == 2, @"Plane Count != 2" );
         
@@ -667,14 +682,14 @@ static UInt64 getTime()
         uint8_t overrideCr = (uint32_t)Cr;//204u;//104u;
         
         
-        overrideY  = 216u;
-        overrideCb = 128u;
-        overrideCr = 115u;
+        overrideY  = 216u; // 0.847 058 216.0/255.0=0.847058 (这里除255而不是256, 截断后面而不是四舍五入)
+        overrideCb = 128u; // 0.501 960
+        overrideCr = 115u; // 0.450 980
     
         
-        uint8_t overrideY2  =  116u;
-        uint8_t overrideCb2 =  96u;
-        uint8_t overrideCr2 = 191u;
+        uint8_t overrideY2  =  116u; // 0.454 901
+        uint8_t overrideCb2 =  96u;  // 0.376 470
+        uint8_t overrideCr2 = 191u;  // 0.749 019
         
         // kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange  ios是小端（低字节在低位/低地址)  从低地址--高地址: YYYYY--CbCrCbCr  Cr是高地址
         uint16_t y   = ((uint16_t)overrideY << 8)   + (uint16_t)overrideY;
@@ -822,7 +837,7 @@ static UInt64 getTime()
     }
     
     // 比较 yuv 是否一致
-    {
+    if (TRUE) {
         
         int imageWidth  = (int)CVPixelBufferGetWidth(pixelBuffer);
         int imageHeight = (int)CVPixelBufferGetHeight(pixelBuffer);
@@ -835,6 +850,12 @@ static UInt64 getTime()
         int uv_width  = (int)CVPixelBufferGetWidthOfPlane (pixelBuffer, 1);
         int uv_height = (int)CVPixelBufferGetHeightOfPlane(pixelBuffer, 1);
         
+        // 原来的nv21
+        CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+        uint8_t* yDestPlane  = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
+        uint8_t* uvDestPlane = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
+        NSAssert(yDestPlane != nullptr && uvDestPlane != nullptr, @"CVPixelBufferGetBaseAddressOfPlane fail %p, %p", yDestPlane, uvDestPlane);
+        
         if (FALSE) {
             NSLog(@"buffer width=%d, height=%d, y_stride=%d, uv_stride=%d, y_width=%d, y_height=%d, uv_width=%d, uv_height=%d",
                   imageWidth, imageHeight,
@@ -842,16 +863,13 @@ static UInt64 getTime()
                   y_width, y_height,
                   uv_width, uv_height);
         }
-
-        // 原来的nv21
-        CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
-        uint8_t* yDestPlane  = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
-        uint8_t* uvDestPlane = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
-        NSAssert(yDestPlane != nullptr && uvDestPlane != nullptr, @"CVPixelBufferGetBaseAddressOfPlane fail %p, %p", yDestPlane, uvDestPlane);
         
 
         // 读取渲染后的yuv420p
-        uint8_t* bufferYuv420p = yuv420p.data();
+        uint8_t* bufferYuv420p  = yuv420p.data();
+        uint8_t* yuv420p_yBase  = bufferYuv420p ;
+        uint8_t* yuv420p_cbBase = bufferYuv420p + imageWidth * imageHeight ;
+        uint8_t* yuv420p_crBase = bufferYuv420p + imageWidth * imageHeight * 5 / 4;
         
         if (TRUE) {
             NSLog(@"nv21:y:%u, u:%u, v:%u   y~%u %u %u uv~(%u %u) (%u %u) (%u %u)"
@@ -874,43 +892,101 @@ static UInt64 getTime()
                   
                   );
             NSLog(@"yuv420:y:%u, u:%u, v:%u   y~%u %u %u uv~(%u %u) (%u %u) (%u %u)"
-                  ,*bufferYuv420p
-                  ,*(bufferYuv420p + imageWidth*imageHeight)
-                  ,*(bufferYuv420p + imageWidth*imageHeight*5/4)
+                  ,*yuv420p_yBase
+                  ,*yuv420p_cbBase
+                  ,*yuv420p_crBase
                   
-                  ,*(bufferYuv420p+1)
-                  ,*(bufferYuv420p+2)
-                  ,*(bufferYuv420p+3)
+                  ,*(yuv420p_yBase + 1)
+                  ,*(yuv420p_yBase + 2)
+                  ,*(yuv420p_yBase + 3)
                   
-                  ,*(bufferYuv420p + imageWidth*imageHeight     +1)
-                  ,*(bufferYuv420p + imageWidth*imageHeight*5/4 +1)
+                  ,*(yuv420p_cbBase +1)
+                  ,*(yuv420p_crBase +1)
                   
-                  ,*(bufferYuv420p + imageWidth*imageHeight     +2)
-                  ,*(bufferYuv420p + imageWidth*imageHeight*5/4 +2)
+                  ,*(yuv420p_cbBase +2)
+                  ,*(yuv420p_crBase +2)
                   
-                  ,*(bufferYuv420p + imageWidth*imageHeight     +3)
-                  ,*(bufferYuv420p + imageWidth*imageHeight*5/4 +3)
-                  
+                  ,*(yuv420p_cbBase +3)
+                  ,*(yuv420p_crBase +3)
                   
                   );
         }
         
         
-        
-        uint8_t* srcItor = bufferYuv420p;
-        uint8_t* dstItor = yDestPlane;
-        int maxValue = 0 ;
-        int k = 0;
-        for( ; srcItor < bufferYuv420p + imageWidth * imageHeight  ; srcItor++,  dstItor++, k++) // 要考虑对齐
-        {
-            int diff = abs( (int)(*srcItor) - (int)(*dstItor)   );
-            if (diff > maxValue) {
-                maxValue = diff ;
+        // ios CVPixelBuffer对齐 会在每行最后padding 0!
+        if (TRUE) {
+            uint8_t* yuv420pItor = bufferYuv420p;
+            uint8_t* nv12Itor    = yDestPlane;
+            int maxValue = 0 ;
+            for(int i = 0 ; i < imageHeight ; i++)
+            {
+                for(int j = 0; j < imageWidth ; j++)
+                {
+                    uint8_t yuv420pixel = *(yuv420pItor + imageWidth * i + j );
+                    uint8_t nv12pixel   = *(nv12Itor    + y_stride   * i + j ); // 要考虑对齐
+                    int diff = abs((int)(yuv420pixel ) - (int)(nv12pixel));
+                    if (diff > maxValue) {
+                        maxValue = diff ;
+                        NSLog(@"%s: maxValue up to %d; coord (%d, %d) ; yuv420p %u nv12 %u "
+                              ,__FUNCTION__
+                              ,maxValue
+                              ,i
+                              ,j
+                              ,yuv420pixel
+                              ,nv12pixel
+                               );
+                    }
+                }
             }
+            NSLog(@"%s: y-maxValue = %d", __FUNCTION__, maxValue);
         }
-        NSLog(@"%s: maxValue = %d", __FUNCTION__, maxValue);
-        
-        
+
+        if (FALSE) {
+            
+            uint8_t* yuv420p_cbBase = bufferYuv420p + imageWidth * imageHeight ;
+            uint8_t* yuv420p_crBase = bufferYuv420p + imageWidth * imageHeight * 5 / 4;
+            
+            uint8_t* nv12_Base     = uvDestPlane;
+            int      nv12_Stride   = uv_stride;
+            
+            int uMaxValue = 0 ;
+            int vMaxValue = 0;
+            
+            for(int i = 0 ; i < imageHeight/2 ; i++) // u和v平面的宽高只有原来的一半
+            {
+                for(int j = 0; j < imageWidth/2 ; j++)
+                {
+                    uint8_t yuv420p_u = *(yuv420p_cbBase + i*imageWidth/2 + j) ;
+                    uint8_t yuv420p_v = *(yuv420p_crBase + i*imageWidth/2 + j) ;
+                    
+                    uint8_t nv12_u    = *(nv12_Base + i*nv12_Stride + j * 2) ;
+                    uint8_t nv12_v    = *(nv12_Base + i*nv12_Stride + j * 2 + 1) ;
+                    
+                    int diff = abs((int)(yuv420p_u) - (int)(nv12_u));
+                    if (diff > uMaxValue) {
+                        uMaxValue = diff ;
+                        NSLog(@"%s: uMaxValue up to %d; coord (%d, %d) ; yuv420p %u nv12 %u "
+                              ,__FUNCTION__
+                              ,uMaxValue
+                              ,i ,j
+                              ,yuv420p_u ,nv12_u );
+                    }
+                    
+                    diff = abs((int)(yuv420p_v) - (int)(nv12_v));
+                    if (diff > vMaxValue) {
+                        vMaxValue = diff;
+                        NSLog(@"%s: vMaxValue up to %d; coord (%d, %d) ; yuv420p %u nv12 %u "
+                              ,__FUNCTION__
+                              ,vMaxValue
+                              ,i ,j
+                              ,yuv420p_v ,nv12_v );
+                    }
+                }
+            }
+            
+            NSLog(@"%s: u max = %d v max = %d", __FUNCTION__, uMaxValue, vMaxValue);
+        }
+
         CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
         
         CVBufferRelease(pixelBuffer);
