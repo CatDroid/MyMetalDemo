@@ -298,7 +298,9 @@ fragment float4 fragmentStage(
             texCoord = float2(v_texCoord.x * 2.0,         (v_texCoord.y - U_DIVIDE_LINE) * 2.0 * 3.0);
         }
         else {
-            texCoord = float2((v_texCoord.x - 0.5) * 2.0, ((v_texCoord.y - U_DIVIDE_LINE) * 2.0 + offsetY) * 3.0);
+            //texCoord = float2((v_texCoord.x - 0.5) * 2.0, ((v_texCoord.y - U_DIVIDE_LINE) * 2.0 + offsetY) * 3.0);
+            //texCoord = float2((v_texCoord.x - 0.5) * 2.0, ((v_texCoord.y - U_DIVIDE_LINE) + offsetY) * 3.0 * 2.0 );
+            texCoord = float2(2.0 * v_texCoord.x - 1.0 , ((1.5 * v_texCoord.y - 1.0) * 2.0 + 1.0 / u_ImgSize.y) * 2.0 );
         }
 
         texCoord += halfSrcSizeR; // 改为采样纹素的中心点
@@ -324,7 +326,8 @@ fragment float4 fragmentStage(
             texCoord = float2(v_texCoord.x * 2.0, (v_texCoord.y - V_DIVIDE_LINE) * 2.0 * 3.0);
         }
         else {
-            texCoord = float2((v_texCoord.x - 0.5) * 2.0, ((v_texCoord.y - V_DIVIDE_LINE) * 2.0 + offsetY) * 3.0);
+            //texCoord = float2((v_texCoord.x - 0.5) * 2.0, ((v_texCoord.y - V_DIVIDE_LINE) * 2.0 + offsetY) * 3.0);
+            texCoord = float2(2.0 * v_texCoord.x - 1.0 , ((1.5 * v_texCoord.y - 1.25) * 2.0 + 1.0 / u_ImgSize.y) * 2.0 );
         }
 
         texCoord += halfSrcSizeR; // 改为采样纹素的中心点
@@ -1088,7 +1091,9 @@ static UInt64 getTime()
             int      nv12_Stride   = uv_stride;
             
             int uMaxValue = 0 ;
-            int vMaxValue = 0;
+            int vMaxValue = 0 ;
+            int uDiffCount = 0;
+            int vDiffCount = 0;
             
             for(int i = 0 ; i < imageHeight/2 ; i++) // u和v平面的宽高只有原来的一半
             {
@@ -1101,6 +1106,7 @@ static UInt64 getTime()
                     uint8_t nv12_v    = *(nv12_Base + i*nv12_Stride + j * 2 + 1) ;
                     
                     int diff = abs((int)(yuv420p_u) - (int)(nv12_u));
+                    if (diff > 0) uDiffCount++;
                     if (diff > uMaxValue) {
                         uMaxValue = diff ;
                         NSLog(@"%s: uMaxValue up to %d; coord (%d, %d) ; yuv420p %u nv12 %u "
@@ -1111,8 +1117,10 @@ static UInt64 getTime()
                     }
                     
                     diff = abs((int)(yuv420p_v) - (int)(nv12_v));
+                    if (diff > 0) vDiffCount++;
                     if (diff > vMaxValue) {
                         vMaxValue = diff;
+                        vDiffCount++;
                         NSLog(@"%s: vMaxValue up to %d; coord (%d, %d) ; yuv420p %u nv12 %u "
                               ,__FUNCTION__
                               ,vMaxValue
@@ -1122,7 +1130,14 @@ static UInt64 getTime()
                 }
             }
             
-            NSLog(@"%s: u max = %d v max = %d", __FUNCTION__, uMaxValue, vMaxValue);
+            NSLog(@"%s: u max = %d diff = %d -- v max = %d diff = %d -- total = %d "
+                  , __FUNCTION__
+                  , uMaxValue
+                  , uDiffCount
+                  , vMaxValue
+                  , vDiffCount
+                  , imageHeight/2 * imageWidth/2
+                  );
         }
 
         CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
