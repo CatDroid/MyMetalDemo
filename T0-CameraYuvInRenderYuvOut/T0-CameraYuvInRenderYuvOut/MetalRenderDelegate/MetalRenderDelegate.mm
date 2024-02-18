@@ -126,12 +126,24 @@ fragment float4 fragmentStage(
                                  sampler samplr [[sampler(0)]]
                                  )
 {
-
-    float y   = yTex.sample(samplr, in.texCoord).r - 0.0625; // 16/256=0.0625   128/256=0.5
-    float2 uv = vuTex.sample(samplr, in.texCoord).rg - vector_float2(0.5); // metal .ar
+    float y   = yTex.sample(samplr, in.texCoord).r;  // 方便debug
+    float2 uv  = vuTex.sample(samplr, in.texCoord).rg;
+    y   = y  - 16.0/255.0 ;                         // 16/256=0.0625   128/256=0.5
+    uv  = uv - vector_float2(128.0/255.0);          // metal .ar
     float3 yuvNv21   = vector_float3(y, uv);
     float4 fragColor = vector_float4(bt709_videorange * yuvNv21, 1.0);
+#if 0
+    if (fragColor.r < -0.003 || fragColor.g <  -0.003 || fragColor.b <  -0.003)
+    {
+        return float4(1.0, 0.0, 0.0, 1.0);
+    }
+    else
+    {
+        return float4(0.0, 0.0, 0.0, 1.0);
+    }
+#else
     return fragColor;
+#endif
 }
 
 )";
@@ -281,10 +293,10 @@ fragment float4 fragmentStage(
         float4 color2 = colorTex.sample(samplr, texCoord + texelOffset * 2.0);
         float4 color3 = colorTex.sample(samplr, texCoord + texelOffset * 3.0);
 
-        float y0 = dot(color0.rgb, COEF_Y) + 0.0625 ; // bt.709 video-range  16.0/256.0=0.0625
-        float y1 = dot(color1.rgb, COEF_Y) + 0.0625 ;
-        float y2 = dot(color2.rgb, COEF_Y) + 0.0625 ;
-        float y3 = dot(color3.rgb, COEF_Y) + 0.0625 ;
+        float y0 = dot(color0.rgb, COEF_Y) + 16.0/255.0 ; // bt.709 video-range  16.0/256.0=0.0625
+        float y1 = dot(color1.rgb, COEF_Y) + 16.0/255.0 ;
+        float y2 = dot(color2.rgb, COEF_Y) + 16.0/255.0;
+        float y3 = dot(color3.rgb, COEF_Y) + 16.0/255.0 ;
         outColor = float4(y0, y1, y2, y3);
     }
     else if (v_texCoord.y < V_DIVIDE_LINE) {
@@ -310,10 +322,10 @@ fragment float4 fragmentStage(
         float4 color2 = colorTex.sample(samplr, texCoord + texelOffset * 4.0);
         float4 color3 = colorTex.sample(samplr, texCoord + texelOffset * 6.0);
 
-        float u0 = dot(color0.rgb, COEF_U) + 0.5;
-        float u1 = dot(color1.rgb, COEF_U) + 0.5;
-        float u2 = dot(color2.rgb, COEF_U) + 0.5;
-        float u3 = dot(color3.rgb, COEF_U) + 0.5;
+        float u0 = dot(color0.rgb, COEF_U) + 128.0/255.0;
+        float u1 = dot(color1.rgb, COEF_U) + 128.0/255.0;
+        float u2 = dot(color2.rgb, COEF_U) + 128.0/255.0;
+        float u3 = dot(color3.rgb, COEF_U) + 128.0/255.0;
         outColor = float4(u0, u1, u2, u3);
     }
     else {
@@ -337,10 +349,10 @@ fragment float4 fragmentStage(
         float4 color2 = colorTex.sample(samplr, texCoord + texelOffset * 4.0);
         float4 color3 = colorTex.sample(samplr, texCoord + texelOffset * 6.0);
 
-        float v0 = dot(color0.rgb, COEF_V) + 0.5;
-        float v1 = dot(color1.rgb, COEF_V) + 0.5;
-        float v2 = dot(color2.rgb, COEF_V) + 0.5;
-        float v3 = dot(color3.rgb, COEF_V) + 0.5;
+        float v0 = dot(color0.rgb, COEF_V) + 128.0/255.0;
+        float v1 = dot(color1.rgb, COEF_V) + 128.0/255.0;
+        float v2 = dot(color2.rgb, COEF_V) + 128.0/255.0;
+        float v3 = dot(color3.rgb, COEF_V) + 128.0/255.0;
         outColor = float4(v0, v1, v2, v3);
     }
 
@@ -598,7 +610,7 @@ static UInt64 getTime()
     // --------------
     
     // 覆盖原来摄像头数据
-    if (TRUE) {
+    if (FALSE) {
         
         NSAssert( CVPixelBufferGetPlaneCount(pixelBuffer) == 2, @"Plane Count != 2" );
         
@@ -667,9 +679,8 @@ static UInt64 getTime()
             
         }
         
-    
 #define CASE 2  // 选择不同的override方案
-        
+
         
 #if CASE == 0 // 替换成单独颜色 RGB转成NV12 (bt.709 video range)
         int R = 211;
@@ -906,7 +917,7 @@ static UInt64 getTime()
                                                                   MTLPixelFormatRG8Unorm, width/2, height/2, 1, &uvMetalTextureRef);
     NSAssert(uvResult == kCVReturnSuccess ,@"create uv texture fail");
     
-    
+    // 因为后面还要使用CVPixelBuffer做检查 所以这里先不释放
     //CVBufferRelease(pixelBuffer);
     
     id<MTLTexture> yTexture  = CVMetalTextureGetTexture(yMetalTextureRef);
@@ -971,7 +982,7 @@ static UInt64 getTime()
     }
     
     // 比较 yuv 是否一致
-    if (TRUE) {
+    if (FALSE) {
         
         int imageWidth  = (int)CVPixelBufferGetWidth(pixelBuffer);
         int imageHeight = (int)CVPixelBufferGetHeight(pixelBuffer);
@@ -1066,11 +1077,8 @@ static UInt64 getTime()
                         NSLog(@"%s: maxValue up to %d; coord (%d, %d) ; yuv420p %u nv12 %u "
                               ,__FUNCTION__
                               ,maxValue
-                              ,i
-                              ,j
-                              ,yuv420pixel
-                              ,nv12pixel
-                               );
+                              ,i ,j
+                              ,yuv420pixel ,nv12pixel );
                     }
                 }
             }
@@ -1142,9 +1150,11 @@ static UInt64 getTime()
 
         CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
         
-        CVBufferRelease(pixelBuffer);
-        
     }
+    
+    // 延迟释放CVPixelBuffer
+    CVBufferRelease(pixelBuffer);
+    
     
     // RGB to Screen
     {
