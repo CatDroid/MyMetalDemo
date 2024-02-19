@@ -18,6 +18,7 @@
 		B0C6F6E42B7E03D40042F0B1 /* CameraDevice.m in Sources */ = {isa = PBXBuildFile; fileRef = B0C6F6E32B7E03D40042F0B1 /* CameraDevice.m */; };
 		B0C6F6EA2B7E0E4A0042F0B1 /* MetalRenderDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = B0C6F6E92B7E0E4A0042F0B1 /* MetalRenderDelegate.mm */; };
 		B0FA9D642B8383A800350008 /* Shader.mm in Sources */ = {isa = PBXBuildFile; fileRef = B0FA9D632B8383A800350008 /* Shader.mm */; };
+		B0FA9D662B838D9900350008 /* test_on_mac.c in Sources */ = {isa = PBXBuildFile; fileRef = B0FA9D652B838D9900350008 /* test_on_mac.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +42,7 @@
 		B0C6F6E92B7E0E4A0042F0B1 /* MetalRenderDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MetalRenderDelegate.mm; sourceTree = "<group>"; };
 		B0FA9AEE2B83327100350008 /* MyConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MyConfig.h; sourceTree = "<group>"; };
 		B0FA9D632B8383A800350008 /* Shader.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Shader.mm; sourceTree = "<group>"; };
+		B0FA9D652B838D9900350008 /* test_on_mac.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = test_on_mac.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,6 +90,7 @@
 				B02B69F02B7DEEF600BFED5E /* Info.plist */,
 				B02B69F12B7DEEF600BFED5E /* main.m */,
 				B0FA9AEE2B83327100350008 /* MyConfig.h */,
+				B0FA9D652B838D9900350008 /* test_on_mac.c */,
 			);
 			path = "T0-CameraYuvInRenderYuvOut";
 			sourceTree = "<group>";
@@ -194,6 +197,7 @@
 				B02B69E72B7DEEF400BFED5E /* ViewController.m in Sources */,
 				B0FA9D642B8383A800350008 /* Shader.mm in Sources */,
 				B02B69E12B7DEEF400BFED5E /* AppDelegate.m in Sources */,
+				B0FA9D662B838D9900350008 /* test_on_mac.c in Sources */,
 				B02B69F22B7DEEF600BFED5E /* main.m in Sources */,
 				B02B69E42B7DEEF400BFED5E /* SceneDelegate.m in Sources */,
 				B02B69FB2B7DF1DD00BFED5E /* MetalView.m in Sources */,
