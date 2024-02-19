@@ -6,6 +6,7 @@
 //
 
 #import "CameraDevice.h"
+#import "MyConfig.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <CoreVideo/CoreVideo.h>
@@ -230,7 +231,13 @@ typedef NS_ENUM(NSInteger, AuthorizationState)
         // kCVPixelFormatType_32BGRA
         // kCVPixelFormatType_420YpCbCr8BiPlanarFullRange  // BT.601 full  range
         // kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange // BT.709 video range
+//#if COLOR_SPACE_CHOOSEN == YUV420_VIDEO_RANGE_BT_709
         (__bridge NSString*)kCVPixelBufferPixelFormatTypeKey :  @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange),
+//#elif COLOR_SPACE_CHOOSEN == YUV420_FULL_RANGE_BT_601
+//        (__bridge NSString*)kCVPixelBufferPixelFormatTypeKey :  @(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange),
+//#else
+//        ... // 故意--错误配置
+//#endif
         (__bridge NSString*)kCVPixelBufferMetalCompatibilityKey : @(YES),
     };
     [_videoDataOutput setVideoSettings:options];

@@ -38,6 +38,7 @@
 		B0C6F6E62B7E03E70042F0B1 /* CameraDevice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CameraDevice.h; sourceTree = "<group>"; };
 		B0C6F6E82B7E0E270042F0B1 /* MetalRenderDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MetalRenderDelegate.h; sourceTree = "<group>"; };
 		B0C6F6E92B7E0E4A0042F0B1 /* MetalRenderDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MetalRenderDelegate.mm; sourceTree = "<group>"; };
+		B0FA9AEE2B83327100350008 /* MyConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MyConfig.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +85,7 @@
 				B02B69ED2B7DEEF600BFED5E /* LaunchScreen.storyboard */,
 				B02B69F02B7DEEF600BFED5E /* Info.plist */,
 				B02B69F12B7DEEF600BFED5E /* main.m */,
+				B0FA9AEE2B83327100350008 /* MyConfig.h */,
 			);
 			path = "T0-CameraYuvInRenderYuvOut";
 			sourceTree = "<group>";

@@ -126,14 +126,31 @@ fragment float4 fragmentStage(
                                  sampler samplr [[sampler(0)]]
                                  )
 {
-    float y   = yTex.sample(samplr, in.texCoord).r;  // 方便debug
-    float2 uv  = vuTex.sample(samplr, in.texCoord).rg;
-    y   = y  - 16.0/255.0 ;                         // 16/256=0.0625   128/256=0.5
-    uv  = uv - vector_float2(128.0/255.0);          // metal .ar
+    float y1   = yTex.sample(samplr, in.texCoord).r;  // 方便debug
+    float2 uv1 = vuTex.sample(samplr, in.texCoord).rg;
+    float  y   = y1  - 16.0/255.0 ;                         // 16/256=0.0625   128/256=0.5
+    float2 uv  = uv1 - vector_float2(128.0/255.0);          // metal .ar
     float3 yuvNv21   = vector_float3(y, uv);
+
     float4 fragColor = vector_float4(bt709_videorange * yuvNv21, 1.0);
+
 #if 0
-    if (fragColor.r < -0.003 || fragColor.g <  -0.003 || fragColor.b <  -0.003)
+    // (225, 121, 134) diff abs:(0, 1, 0)    --> rgb: (254.028000, 241.563004, 228.477997) rgb在正常区间 yuv也在正确区间 但是还相差1,
+    //                                           精度原因(不能存浮点 只能是整数uint8)
+    //                                           如果转换之后用截断方式 (254, 241, 228) diff就是0; 四舍五入 (254, 242, 228) diff有1
+    // (224, 118,134)  diff abs:(0, 0, 0)    --> (252.863998, 241.037994, 220.972000)
+    //                                           精度原因 四舍五入diff为0 直接截断diff为1
+
+    fragColor.r = ( (int)  (fragColor.r * 255.0)  )/ 255.0 ;
+    fragColor.b = ( (int)  (fragColor.b * 255.0)  )/ 255.0 ;
+    fragColor.g = ( (int)  (fragColor.g * 255.0)  )/ 255.0 ;
+
+#endif
+
+#if 0
+    if ( (fragColor.r < -0.003 || fragColor.g <  -0.003 || fragColor.b <  -0.003)
+         && (y1 >= 16.0/255.0 && y1 <= 235.0/255.0) // y1在[16,235] rgb会出现负数 (y,cb,cv都在正确范围内,但是(y,cb,cr)这个组合可能是不对的)
+        )
     {
         return float4(1.0, 0.0, 0.0, 1.0);
     }
@@ -609,6 +626,130 @@ static UInt64 getTime()
     }
     // --------------
     
+    // 打印颜色空间
+    static bool logOnce = true ;
+    if (logOnce) {
+        logOnce = false ;
+        
+        OSType format = CVPixelBufferGetPixelFormatType(pixelBuffer);
+        NSString *formatString = [NSString stringWithFormat:@"%c%c%c%c",
+          (char)((format >> 24) & 0xFF),
+          (char)((format >> 16) & 0xFF),
+          (char)((format >> 8) & 0xFF),
+          (char)(format & 0xFF)];
+        
+        switch (format) {
+          case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
+          //case kCVPixelFormatType_420YpCbCr8PlanarVideoRange:
+          case kCVPixelFormatType_422YpCbCr8BiPlanarVideoRange:
+          //case kCVPixelFormatType_422YpCbCr8PlanarVideoRange:
+          case kCVPixelFormatType_444YpCbCr8BiPlanarVideoRange:
+          //case kCVPixelFormatType_444YpCbCr8PlanarVideoRange:
+            NSLog(@"The pixel buffer is video range. %@" , formatString); // 420v
+            break;
+
+          case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
+          case kCVPixelFormatType_420YpCbCr8PlanarFullRange:  // 只有这个是Planar YUV格式其他都是Bi-Planar交错平面
+          case kCVPixelFormatType_422YpCbCr8BiPlanarFullRange:
+          //case kCVPixelFormatType_422YpCbCr8PlanarFullRange:
+          case kCVPixelFormatType_444YpCbCr8BiPlanarFullRange:
+          //case kCVPixelFormatType_444YpCbCr8PlanarFullRange: // 没有定义
+
+            NSLog(@"The pixel buffer is full range. %@" , formatString);
+            break;
+
+          default:
+            NSLog(@"The pixel buffer format is unknown. %@" , formatString);
+            break;
+        }
+        
+
+        CFStringRef colorAttachments = (CFStringRef)CVBufferCopyAttachment(pixelBuffer, kCVImageBufferYCbCrMatrixKey, NULL);
+        if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_601_4, 0) == kCFCompareEqualTo) {
+            NSLog(@"BT.601 颜色空间");
+        } else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_709_2, 0) == kCFCompareEqualTo) {
+            NSLog(@"BT.709 颜色空间");
+        } else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_2020, 0) == kCFCompareEqualTo) {
+            NSLog(@"BT.2020 颜色空间");
+        //} else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_DCI_P3, 0) == kCFCompareEqualTo) {
+        //    NSLog(@"DCI_P3 颜色空间");
+        //} else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_P3_D65, 0) == kCFCompareEqualTo) {
+        //    NSLog(@"P3_D65 颜色空间");
+        } else {
+            const char* cString = CFStringGetCStringPtr((CFStringRef)colorAttachments , kCFStringEncodingUTF8);
+            NSLog(@"? 颜色空间是 %s", cString );
+        }
+        CFRelease(colorAttachments);
+    }
+
+    
+    
+    // 检查摄像头输出的YUV 是否超过范围  --- 420v Y通道会超过范围 但是CbCr通道不会
+    if (FALSE) {
+        CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+        uint8_t* yBase  = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
+        uint8_t* uvBase = (uint8_t*)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 1);
+        
+        int imageWidth  = (int)CVPixelBufferGetWidth(pixelBuffer); // 720
+        int imageHeight = (int)CVPixelBufferGetHeight(pixelBuffer);// 1280
+        
+        int y_width   = (int)CVPixelBufferGetWidthOfPlane (pixelBuffer, 0); // 720
+        int y_height  = (int)CVPixelBufferGetHeightOfPlane(pixelBuffer, 0); // 1280
+        int uv_width  = (int)CVPixelBufferGetWidthOfPlane (pixelBuffer, 1); // 360
+        int uv_height = (int)CVPixelBufferGetHeightOfPlane(pixelBuffer, 1); // 640
+        
+        int y_stride  = (int)CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0); // 768 -- 64字节对齐
+        int uv_stride = (int)CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1); // 768
+         
+
+        // 检查-y平面
+        if (FALSE) {
+            for(int i = 0 ; i < imageHeight ; i++) {
+                for(int j = 0; j < imageWidth ; j++) {
+                    uint8_t nv12pixel   = *(yBase    + y_stride * i + j ); // 要考虑对齐
+                    if (nv12pixel < 16 || nv12pixel > 235) {
+                    //if (nv12pixel < 10 || nv12pixel > 250) {
+                        NSLog(@"%s: y panel out of range, coord (x:%d, y:%d), h-coord (x:%d, y:%d) ; nv12 %u "
+                              ,__FUNCTION__
+                              ,j ,i  // 注意这里 先'列x'后‘行y’
+                              ,j/2, i/2
+                              ,nv12pixel );
+                    }
+                }
+            }
+        }
+
+        // 检查-uv平面
+        if (TRUE) {
+            for(int i = 0 ; i < imageHeight/2 ; i++) // u和v平面的宽高只有原来的一半
+            {
+                for(int j = 0; j < imageWidth/2 ; j++)
+                {
+                   
+                    uint8_t nv12_u    = *(uvBase + i * uv_stride + j * 2) ;
+                    uint8_t nv12_v    = *(uvBase + i * uv_stride + j * 2 + 1) ;
+                    if (nv12_u < 16 || nv12_u > 240) {
+                        NSLog(@"%s: cb panel out of range, coord (x:%d, y:%d), h-coord (x:%d, y:%d) ; nv12 %u "
+                              ,__FUNCTION__
+                              ,j*2 ,i*2  // 注意这里 先'列x'后‘行y’
+                              ,j, i
+                              ,nv12_u );
+                    }
+                    
+                    if (nv12_v < 16 || nv12_v > 240) {
+                        NSLog(@"%s: cr panel out of range, coord (x:%d, y:%d), h-coord (x:%d, y:%d) ; nv12 %u "
+                              ,__FUNCTION__
+                              ,j*2 ,i*2  // 注意这里 先'列x'后‘行y’
+                              ,j, i
+                              ,nv12_v );
+                    }
+                }
+            }
+        }
+
+        CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+    }
+    
     // 覆盖原来摄像头数据
     if (FALSE) {
         
@@ -883,29 +1024,7 @@ static UInt64 getTime()
     size_t width  = CVPixelBufferGetWidth(pixelBuffer);
     size_t height = CVPixelBufferGetHeight(pixelBuffer);
     
-    static bool logOnce = true ;
-    if (logOnce) {
-        logOnce = false ;
-        
-        CFStringRef colorAttachments = (CFStringRef)CVBufferCopyAttachment(pixelBuffer, kCVImageBufferYCbCrMatrixKey, NULL);
-        if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_601_4, 0) == kCFCompareEqualTo) {
-            NSLog(@"BT.601 颜色空间");
-        } else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_709_2, 0) == kCFCompareEqualTo) {
-            NSLog(@"BT.709 颜色空间");
-        } else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_ITU_R_2020, 0) == kCFCompareEqualTo) {
-            NSLog(@"BT.2020 颜色空间");
-        //} else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_DCI_P3, 0) == kCFCompareEqualTo) {
-        //    NSLog(@"DCI_P3 颜色空间");
-        //} else if (CFStringCompare(colorAttachments, kCVImageBufferYCbCrMatrix_P3_D65, 0) == kCFCompareEqualTo) {
-        //    NSLog(@"P3_D65 颜色空间");
-        } else {
-            const char* cString = CFStringGetCStringPtr((CFStringRef)colorAttachments , kCFStringEncodingUTF8);
-            NSLog(@"? 颜色空间是 %s", cString );
-        }
-        CFRelease(colorAttachments);
-    }
-
-     
+   
     CVMetalTextureRef yMetalTextureRef  = NULL;
     CVReturn yResult = CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault, _textureCache, pixelBuffer, NULL,
                                                                  MTLPixelFormatR8Unorm,  width,  height, 0,  &yMetalTextureRef);
@@ -1012,11 +1131,15 @@ static UInt64 getTime()
 
         // 读取渲染后的yuv420p
         uint8_t* bufferYuv420p  = yuv420p.data();
-        uint8_t* yuv420p_yBase  = bufferYuv420p ;
-        uint8_t* yuv420p_cbBase = bufferYuv420p + imageWidth * imageHeight ;
-        uint8_t* yuv420p_crBase = bufferYuv420p + imageWidth * imageHeight * 5 / 4;
+ 
         
-        if (TRUE) {
+        // 比较 Y平面 前面4个像素 和 UV平面 前面4个像素(对应原图4*(2*2)个像素)
+        if (FALSE) {
+            
+            uint8_t* yuv420p_yBase  = bufferYuv420p ;
+            uint8_t* yuv420p_cbBase = bufferYuv420p + imageWidth * imageHeight ;
+            uint8_t* yuv420p_crBase = bufferYuv420p + imageWidth * imageHeight * 5 / 4;
+            
             NSLog(@"nv21:y:%u, u:%u, v:%u   y~%u %u %u uv~(%u %u) (%u %u) (%u %u)"
                   ,*yDestPlane
                   ,*(uvDestPlane)
@@ -1057,28 +1180,79 @@ static UInt64 getTime()
                   );
         }
         
-        
+        // 比较 y 平面是否一致
         // ios CVPixelBuffer对齐 会在每行最后padding 0!
-        if (TRUE) {
-            uint8_t* yuv420pItor = bufferYuv420p;
-            uint8_t* nv12Itor    = yDestPlane;
+        if (FALSE) {
+            uint8_t* yuv420p_yBase  = bufferYuv420p;
+            
+            uint8_t* nv12_yBase     = yDestPlane;
+            uint8_t* nv12_uvBase    = uvDestPlane;
+        
             int maxValue  = 0 ;
             int diffCount = 0;
             for(int i = 0 ; i < imageHeight ; i++)
             {
                 for(int j = 0; j < imageWidth ; j++)
                 {
-                    uint8_t yuv420pixel = *(yuv420pItor + imageWidth * i + j );
-                    uint8_t nv12pixel   = *(nv12Itor    + y_stride   * i + j ); // 要考虑对齐
-                    int diff = abs((int)(yuv420pixel ) - (int)(nv12pixel));
+                    int uv_i = i / 2 ; // uv平面的行
+                    int uv_j = j / 2 ;
+                    
+                    uint8_t yuv420pixel = *(yuv420p_yBase + imageWidth * i + j );
+                    uint8_t nv12_y    = *(nv12_yBase    + y_stride  * i    + j ); // 要考虑对齐
+                    uint8_t nv12_u    = *(nv12_uvBase   + uv_stride * uv_i + uv_j * 2) ;
+                    uint8_t nv12_v    = *(nv12_uvBase   + uv_stride * uv_i + uv_j * 2 + 1) ;
+                    
+                    int diff = abs((int)(yuv420pixel) - (int)(nv12_y));
+                    
+                   
+                    // yuv不在正确"区间" ----- 目前发现这样的diff可能在20以内
+                    //
+                    // (255, 104, 136)    --> 这个Y是255 超过了video-range的定义  rgb=(292.532013, 279.036011, 227.460007)
+                    //
+                    
+                    // yuv在正确"区间", 但这个"组合"可能不在正确"空间" 内 ----- 目前发现这样的diff可能在10以内
+                    //
+                    // (30, 116, 147)    -->  rgb=(50.344002, 8.706000, -9.072000)      < 0 负数
+                    // (231, 105, 136)   -->  rgb: (264.596008, 250.886993, 201.638000) > 255
+                    // (226, 105, 136)   -->  rgb: (258.776001, 245.067001, 195.817993) > 255, 会被截断
+                    //
+                    
+                    // "区间"以外, 不对比
+                    if (nv12_y < 16 || nv12_y > 235) {
+                        continue ;
+                    }
+                    
+                    NSAssert((nv12_u >= 16 && nv12_u <= 240),  @"nv12_u out of range %u", nv12_u);
+                    NSAssert((nv12_v >= 16 && nv12_v <= 240),  @"nv12_v out of range %u", nv12_v);
+                    
+                    // bt709 video-range to rgb
+                    float R1 = 1.164 * (nv12_y - 16)                          + 1.792 * (nv12_v - 128);
+                    float G1 = 1.164 * (nv12_y - 16) - 0.213 * (nv12_u - 128) - 0.534 * (nv12_v - 128);
+                    float B1 = 1.164 * (nv12_y - 16) + 2.114 * (nv12_u - 128);
+                    
+                    // 不考虑 转换rgb之后 超出0到255的像素
+                    if (   ( (R1<0) || (R1>255) )
+                        || ( (G1<0) || (G1>255) )
+                        || ( (B1<0) || (B1>255) )
+                        ) {
+                        continue ;
+                    }
+                    
+                    // 1. 原始的yuv超出'区间'(主要是Y平面,CbCr平面暂时没有发现越界)
+                    // 2. 原始的yuv在'区间' 但不在‘空间’
+                    // 排除这两种情况, 就不会有diff了
+                    
                     if (diff > 0) diffCount++;
                     if (diff > maxValue) {
                         maxValue = diff ;
-                        NSLog(@"%s: maxValue up to %d; coord (%d, %d) ; yuv420p %u nv12 %u "
+                        
+                        NSLog(@"%s: maxValue up to %d; coord (x:%d, y:%d), h-coord (x:%d, y:%d) ; yuv420p %u nv12 (y:%u cb:%u cr:%u)"
                               ,__FUNCTION__
                               ,maxValue
-                              ,i ,j
-                              ,yuv420pixel ,nv12pixel );
+                              ,j ,i  // 注意这里 先'列x'后‘行y’
+                              ,j/2, i/2
+                              ,yuv420pixel 
+                              ,nv12_y, nv12_u, nv12_v);
                     }
                 }
             }
@@ -1090,12 +1264,14 @@ static UInt64 getTime()
                   );
         }
 
+        // 比较 uv 平面是否一致
         if (TRUE) {
             
             uint8_t* yuv420p_cbBase = bufferYuv420p + imageWidth * imageHeight ;
             uint8_t* yuv420p_crBase = bufferYuv420p + imageWidth * imageHeight * 5 / 4;
             
-            uint8_t* nv12_Base     = uvDestPlane;
+            uint8_t* nv12_yBase    = yDestPlane;
+            uint8_t* nv12_uvBase   = uvDestPlane;
             int      nv12_Stride   = uv_stride;
             
             int uMaxValue = 0 ;
@@ -1107,21 +1283,58 @@ static UInt64 getTime()
             {
                 for(int j = 0; j < imageWidth/2 ; j++)
                 {
+                    int y_i = i * 2 ; // y平面的坐标
+                    int y_j = j * 2 ; // 由于uv对应4个y像素, 这里只取左上角的一个
+                    
+                    
                     uint8_t yuv420p_u = *(yuv420p_cbBase + i*imageWidth/2 + j) ;
                     uint8_t yuv420p_v = *(yuv420p_crBase + i*imageWidth/2 + j) ;
                     
-                    uint8_t nv12_u    = *(nv12_Base + i*nv12_Stride + j * 2) ;
-                    uint8_t nv12_v    = *(nv12_Base + i*nv12_Stride + j * 2 + 1) ;
+                    uint8_t nv12_y    = *(nv12_yBase  + y_stride * y_i  + y_j );
+                    uint8_t nv12_u    = *(nv12_uvBase + nv12_Stride * i + j * 2) ;
+                    uint8_t nv12_v    = *(nv12_uvBase + nv12_Stride * i + j * 2 + 1) ;
                     
+                   // 检查Y是否在正确'区间'
+                    if (nv12_y < 16 || nv12_y > 235) {
+                        continue ;
+                    }
+                    
+                    // Cb, Cr 目前发现 都在 正确‘区间’
+                    NSAssert((nv12_u >= 16 && nv12_u <= 240),  @"nv12_u out of range %u", nv12_u);
+                    NSAssert((nv12_v >= 16 && nv12_v <= 240),  @"nv12_v out of range %u", nv12_v);
+                    
+                    
+                    // bt709 video-range to rgb
+                    float R1 = 1.164 * (nv12_y - 16)                          + 1.792 * (nv12_v - 128);
+                    float G1 = 1.164 * (nv12_y - 16) - 0.213 * (nv12_u - 128) - 0.534 * (nv12_v - 128);
+                    float B1 = 1.164 * (nv12_y - 16) + 2.114 * (nv12_u - 128);
+                    
+                    // 不考虑 转换rgb之后 超出0到255的像素
+                    if (   ( (R1<0) || (R1>255) )
+                        || ( (G1<0) || (G1>255) )
+                        || ( (B1<0) || (B1>255) )
+                        ) {
+                        continue ;
+                    }
+                    
+ 
+                    // (225, 121, 134) diff abs:(0, 1, 0)
+                    //   --> rgb: (254.028000, 241.563004, 228.477997)
+                    //       rgb在正常区间, yuv也在正确区间, 但是还相差1
+                    //       精度原因
+                    //       转换之后, 截断方式 (254, 241, 228) diff是0
+                    //       转换之后, 四舍五入 (254, 242, 228) diff是1
                     int diff = abs((int)(yuv420p_u) - (int)(nv12_u));
                     if (diff > 0) uDiffCount++;
                     if (diff > uMaxValue) {
                         uMaxValue = diff ;
-                        NSLog(@"%s: uMaxValue up to %d; coord (%d, %d) ; yuv420p %u nv12 %u "
+                        NSLog(@"%s: uMaxValue up to %d; coord (x:%d, y:%d) h-coord (x:%d, y:%d) ; yuv420p‘cb = %u nv12 (y:%u cb:%u cr:%u)"
                               ,__FUNCTION__
                               ,uMaxValue
-                              ,i ,j
-                              ,yuv420p_u ,nv12_u );
+                              ,j ,i  // 注意这里 先'列x'后‘行y’
+                              ,j/2, i/2
+                              ,yuv420p_u
+                              ,nv12_y, nv12_u, nv12_v);
                     }
                     
                     diff = abs((int)(yuv420p_v) - (int)(nv12_v));
@@ -1129,11 +1342,13 @@ static UInt64 getTime()
                     if (diff > vMaxValue) {
                         vMaxValue = diff;
                         vDiffCount++;
-                        NSLog(@"%s: vMaxValue up to %d; coord (%d, %d) ; yuv420p %u nv12 %u "
+                        NSLog(@"%s: vMaxValue up to %d; coord (x:%d, y:%d) h-coord (x:%d, y:%d) ; yuv420p'cr = %u nv12 (y:%u cb:%u cr:%u)"
                               ,__FUNCTION__
                               ,vMaxValue
-                              ,i ,j
-                              ,yuv420p_v ,nv12_v );
+                              ,j ,i  // 注意这里 先'列x'后‘行y’
+                              ,j/2, i/2
+                              ,yuv420p_v 
+                              ,nv12_y, nv12_u, nv12_v);
                     }
                 }
             }
