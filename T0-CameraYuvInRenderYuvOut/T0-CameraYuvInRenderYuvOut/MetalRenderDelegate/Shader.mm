@@ -184,9 +184,17 @@ const char* sRgbToYuv = R"(
 using namespace metal;
 
 //这里的转换公式是 709 video-range, 需要和上屏的时候的yuv->rgb对应
-constant static float3 COEF_Y = float3( 0.183f,  0.614f,  0.062f);
-constant static float3 COEF_U = float3(-0.101f, -0.339f,  0.439f);
-constant static float3 COEF_V = float3( 0.439f, -0.399f, -0.040f);
+//constant static float3 COEF_Y = float3( 0.183f,  0.614f,  0.062f, 16.0/255.0 );
+//constant static float3 COEF_U = float3(-0.101f, -0.339f,  0.439f, 128.0/255.0);
+//constant static float3 COEF_V = float3( 0.439f, -0.399f, -0.040f, 128.0/255.0);
+
+constant static float4x4 COEF_MATRIX = float4x4(
+    0.183f,     0.614f,     0.062f,     16.0/255.0,     // Y    // metal 列主序 第一列  COEF_MATRIX[0] 是第一列
+    -0.101f,    -0.339f,    0.439f,     128.0/255.0,    // Cb
+    0.439f,     -0.399f,    -0.040f,    128.0/255.0,    // Cr
+    0.0,        0.0,        0.0,        0.0
+);
+
 constant static float U_DIVIDE_LINE = 2.0f / 3.0f;
 constant static float V_DIVIDE_LINE = 5.0f / 6.0f;
 
@@ -202,12 +210,13 @@ typedef struct
     float2 texCoord;
 } VertexOut ;
 
+ 
 typedef struct
 {
-    vector_float2 u_Offset;
-    vector_float2 u_ImgSize;
-    vector_float2 u_TargetSize;
+    vector_float2 u_InvRgbSize;
+    vector_float2 u_InvFboSize;
 } UniformBuffer ;
+
 
 vertex VertexOut vertexStage(
                                     constant MyVertex* vertexes [[buffer(0)]],
@@ -233,97 +242,77 @@ fragment float4 fragmentStage(
                                      )
 {
     // uniform
-    float  u_Offset  = uniformbuffer.u_Offset.x; // 纹理-每个纹素-归一化后的大小
-    float2 u_ImgSize = uniformbuffer.u_ImgSize;  // 纹理-分辨率
+    float  invRgbSizeW  = uniformbuffer.u_InvRgbSize.x; // RGB图的宽的倒数
+    float  invRgbSizeH  = uniformbuffer.u_InvRgbSize.y; // RGB图的高的倒数
 
-    float2 halfTagetSizeR = (uniformbuffer.u_TargetSize / 2.0); // fbo分辨率  0.5像素 归一化后的大小
-    float2 halfSrcSizeR   = (uniformbuffer.u_Offset     / 2.0); // 纹理纹素   0.5像素 归一化后的大小
+    float2 invFboHalfPixelSize = (uniformbuffer.u_InvFboSize  * 0.5); // fbo 半像素 归一化后的大小
+    float2 invRgbHalfPixelSize = (uniformbuffer.u_InvRgbSize  * 0.5); // RGB 半像素 归一化后的大小
     
     // metal 输出float 0~1.0 到RGBA整数 是四舍五入 比如 0.92156*255=234.9978 读取纹理是235
     // metal每个片元 插值坐标是 片元的中心点，不是左上角(OpenGL)
     // varying
-    float2 v_texCoord = in.texCoord - halfTagetSizeR;
+    float2 v_texCoord = in.texCoord - invFboHalfPixelSize;
 
     // begin..
-    float2 texelOffset = float2(u_Offset, 0.0);
+    float2 texelOffset = float2(invRgbSizeW, 0.0);
+    float  texelOffsetFactor ;
 
     float4 outColor;
+    float2 texCoord;
 
+    int index ;
+
+    
     if (v_texCoord.y < U_DIVIDE_LINE) {
-        //在纹理坐标 y < (2/3) 范围，需要完成一次对整个纹理的采样，
-        //一次采样（加三次偏移采样）4 个 RGBA 像素（R,G,B,A）生成 1 个（Y0,Y1,Y2,Y3），整个范围采样结束时填充好 width*height 大小的缓冲区；
 
-        float2 texCoord = float2(v_texCoord.x, v_texCoord.y * 3.0 / 2.0);
-       
-        texCoord += halfSrcSizeR; // 改为采样纹素的中心点
+        texCoord = float2(v_texCoord.x, v_texCoord.y * 3.0 / 2.0);
 
-        float4 color0 = colorTex.sample(samplr, texCoord);
-        float4 color1 = colorTex.sample(samplr, texCoord + texelOffset);
-        float4 color2 = colorTex.sample(samplr, texCoord + texelOffset * 2.0);
-        float4 color3 = colorTex.sample(samplr, texCoord + texelOffset * 3.0);
+        index = 0;
+        texelOffsetFactor = 1.0;
 
-        float y0 = dot(color0.rgb, COEF_Y) + 16.0/255.0 ; // bt.709 video-range  16.0/256.0=0.0625
-        float y1 = dot(color1.rgb, COEF_Y) + 16.0/255.0 ;
-        float y2 = dot(color2.rgb, COEF_Y) + 16.0/255.0;
-        float y3 = dot(color3.rgb, COEF_Y) + 16.0/255.0 ;
-        outColor = float4(y0, y1, y2, y3);
-    }
-    else if (v_texCoord.y < V_DIVIDE_LINE) {
+    } else if (v_texCoord.y < V_DIVIDE_LINE) {
 
-        //当纹理坐标 y > (2/3) 且 y < (5/6) 范围，一次采样（加三次偏移采样）8 个 RGBA 像素（R,G,B,A）生成（U0,U1,U2,U3），
-        //又因为 U plane 缓冲区的宽高均为原图的 1/2 ，U plane 在垂直方向和水平方向的采样都是隔行进行，整个范围采样结束时填充好 width*height/4 大小的缓冲区。
-
-        float offsetY = 1.0 / 3.0 / u_ImgSize.y;
-        float2 texCoord;
-        if(v_texCoord.x < 0.5 - halfTagetSizeR.x ) { // 相当于直接用in.texCoord来判断 当前位置是否<0.5
+        //if(v_texCoord.x < 0.5 - invFboHalfPixelSize.x ) { // 相当于直接用in.texCoord来判断 当前位置是否<0.5
+        if (in.texCoord.x < 0.5) { // 0.5 这个位置 应该属于第一行(奇数行) (第0行 第一行(含0.5))
             texCoord = float2(v_texCoord.x * 2.0,         (v_texCoord.y - U_DIVIDE_LINE) * 2.0 * 3.0);
-        }
-        else {
-            //texCoord = float2((v_texCoord.x - 0.5) * 2.0, ((v_texCoord.y - U_DIVIDE_LINE) * 2.0 + offsetY) * 3.0);
-            //texCoord = float2((v_texCoord.x - 0.5) * 2.0, ((v_texCoord.y - U_DIVIDE_LINE) + offsetY) * 3.0 * 2.0 );
-            texCoord = float2(2.0 * v_texCoord.x - 1.0 , ((1.5 * v_texCoord.y - 1.0) * 2.0 + 1.0 / u_ImgSize.y) * 2.0 );
+        } else {
+            texCoord = float2(2.0 * v_texCoord.x - 1.0 , ((1.5 * v_texCoord.y - 1.0) * 2.0 +  invRgbSizeH  ) * 2.0 ); // 或者这样
         }
 
-        texCoord += halfSrcSizeR; // 改为采样纹素的中心点
+        index = 1;
+        texelOffsetFactor = 2.0;
 
-        float4 color0 = colorTex.sample(samplr, texCoord);
-        float4 color1 = colorTex.sample(samplr, texCoord + texelOffset * 2.0);
-        float4 color2 = colorTex.sample(samplr, texCoord + texelOffset * 4.0);
-        float4 color3 = colorTex.sample(samplr, texCoord + texelOffset * 6.0);
+    } else {
 
-        float u0 = dot(color0.rgb, COEF_U) + 128.0/255.0;
-        float u1 = dot(color1.rgb, COEF_U) + 128.0/255.0;
-        float u2 = dot(color2.rgb, COEF_U) + 128.0/255.0;
-        float u3 = dot(color3.rgb, COEF_U) + 128.0/255.0;
-        outColor = float4(u0, u1, u2, u3);
-    }
-    else {
-        //当纹理坐标 y > (5/6) 范围，一次采样（加三次偏移采样）8 个 RGBA 像素（R,G,B,A）生成（V0,V1,V2,V3），
-        //同理，因为 V plane 缓冲区的宽高均为原图的 1/2 ，垂直方向和水平方向都是隔行采样，整个范围采样结束时填充好 width*height/4 大小的缓冲区。
-
-        float offsetY = 1.0 / 3.0 / u_ImgSize.y;
-        float2 texCoord;
-        if(v_texCoord.x < 0.5  - halfTagetSizeR.x ) {
+        //if(v_texCoord.x < 0.5  - invFboHalfPixelSize.x ) {
+        if (in.texCoord.x < 0.5) {
             texCoord = float2(v_texCoord.x * 2.0, (v_texCoord.y - V_DIVIDE_LINE) * 2.0 * 3.0);
+        } else {
+            texCoord = float2(2.0 * v_texCoord.x - 1.0 , ((1.5 * v_texCoord.y - 1.25) * 2.0 + invRgbSizeH  ) * 2.0 );
         }
-        else {
-            //texCoord = float2((v_texCoord.x - 0.5) * 2.0, ((v_texCoord.y - V_DIVIDE_LINE) * 2.0 + offsetY) * 3.0);
-            texCoord = float2(2.0 * v_texCoord.x - 1.0 , ((1.5 * v_texCoord.y - 1.25) * 2.0 + 1.0 / u_ImgSize.y) * 2.0 );
-        }
-
-        texCoord += halfSrcSizeR; // 改为采样纹素的中心点
-        
-        float4 color0 = colorTex.sample(samplr, texCoord);
-        float4 color1 = colorTex.sample(samplr, texCoord + texelOffset * 2.0);
-        float4 color2 = colorTex.sample(samplr, texCoord + texelOffset * 4.0);
-        float4 color3 = colorTex.sample(samplr, texCoord + texelOffset * 6.0);
-
-        float v0 = dot(color0.rgb, COEF_V) + 128.0/255.0;
-        float v1 = dot(color1.rgb, COEF_V) + 128.0/255.0;
-        float v2 = dot(color2.rgb, COEF_V) + 128.0/255.0;
-        float v3 = dot(color3.rgb, COEF_V) + 128.0/255.0;
-        outColor = float4(v0, v1, v2, v3);
+       
+        index = 2;
+        texelOffsetFactor = 2.0;
     }
+
+    texCoord += invRgbHalfPixelSize; // 改为采样纹素的中心点
+
+    float4 color0 = colorTex.sample(samplr, texCoord);
+    float4 color1 = colorTex.sample(samplr, texCoord + texelOffset * 1.0 * texelOffsetFactor);
+    float4 color2 = colorTex.sample(samplr, texCoord + texelOffset * 2.0 * texelOffsetFactor);
+    float4 color3 = colorTex.sample(samplr, texCoord + texelOffset * 3.0 * texelOffsetFactor);
+    color0.a = 1.0;
+    color1.a = 1.0;
+    color2.a = 1.0;
+    color3.a = 1.0;
+
+    float4 coefBias = COEF_MATRIX[index];
+    
+    float p0 = dot(color0, coefBias) ;
+    float p1 = dot(color1, coefBias) ;
+    float p2 = dot(color2, coefBias) ;
+    float p3 = dot(color3, coefBias) ;
+    outColor = float4(p0, p1, p2, p3);
 
     return outColor;
 }

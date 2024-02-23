@@ -95,9 +95,8 @@ extern const char* sYuv2RgbShader;
 
 typedef struct
 {
-    vector_float2 u_Offset;
-    vector_float2 u_ImgSize;
-    vector_float2 u_TargetSize;
+    vector_float2 u_InvRgbSize;
+    vector_float2 u_InvFboSize;
 } UniformBuffer ;
 
 extern const char* sRgbToYuv;
@@ -279,9 +278,9 @@ extern const char* sRgbToScreen;
     // uniform buffer // 写死参数 不旋转
     {
         UniformBuffer rgbToYuvUniformBuffer ;
-        rgbToYuvUniformBuffer.u_ImgSize    = simd_make_float2( kWidth,         kHeight) ;
-        rgbToYuvUniformBuffer.u_Offset     = simd_make_float2( 1.0/kWidth,     1.0/kHeight);
-        rgbToYuvUniformBuffer.u_TargetSize = simd_make_float2( 1.0/(kWidth/4), 1.0/(kHeight*3/2) );
+        //rgbToYuvUniformBuffer.u_ImgSize    = simd_make_float2( kWidth,         kHeight) ;
+        rgbToYuvUniformBuffer.u_InvRgbSize   = simd_make_float2( 1.0/kWidth,     1.0/kHeight);
+        rgbToYuvUniformBuffer.u_InvFboSize   = simd_make_float2( 1.0/(kWidth/4), 1.0/(kHeight*3/2) );
         _uniformBuffer = [device newBufferWithBytes:&rgbToYuvUniformBuffer
                                              length:sizeof(rgbToYuvUniformBuffer)
                                             options:MTLResourceStorageModeShared|MTLResourceCPUCacheModeWriteCombined];
@@ -317,6 +316,23 @@ static UInt64 getTime()
 {
     UInt64 timestamp = [[NSDate date] timeIntervalSince1970]*1000;
     return timestamp;
+}
+
+void yuv2rgb_VIDEO_RANGE_BT_709(uint8_t Y1, uint8_t Cb1, uint8_t Cr1)
+{
+    float R1 = 1.164 * (Y1 - 16)                       + 1.792 * (Cr1 - 128);
+    float G1 = 1.164 * (Y1 - 16) - 0.213 * (Cb1 - 128) - 0.534 * (Cr1 - 128);
+    float B1 = 1.164 * (Y1 - 16) + 2.114 * (Cb1 - 128);
+    
+    int R1int = (int)roundf(R1);
+    int G1int = (int)roundf(G1);
+    int B1int = (int)roundf(B1);
+    NSLog(@"YUV:(%u,%u,%u) (%f,%f,%f) RGB: (%d %d %d) (%f %f %f)",
+          Y1,               Cb1,                Cr1,
+          Y1/255.0,         Cb1/255.0,          Cr1/255.0,
+          R1int,            G1int,              B1int,          // 四舍五入 转int
+          R1int/255.0,      G1int/255.0,        B1int/255.0     // metal debug面板的值
+          );
 }
 
 // !!! 摄像头和渲染是两个单独的线程 !!!
@@ -480,7 +496,7 @@ static UInt64 getTime()
     }
     
     // 覆盖原来摄像头数据
-    if (FALSE) {
+    if (TRUE) {
         
         NSAssert( CVPixelBufferGetPlaneCount(pixelBuffer) == 2, @"Plane Count != 2" );
         
@@ -731,6 +747,53 @@ static UInt64 getTime()
         uint8_t V4  = 100u ;
         
         
+        static bool logOnce2 = true ;
+        if (logOnce2) {
+            logOnce2 = false ;
+            yuv2rgb_VIDEO_RANGE_BT_709(Y1, U1, V1);
+            yuv2rgb_VIDEO_RANGE_BT_709(Y2, U1, V1);
+            yuv2rgb_VIDEO_RANGE_BT_709(Y3, U1, V1);
+            yuv2rgb_VIDEO_RANGE_BT_709(Y4, U1, V1);
+            
+            yuv2rgb_VIDEO_RANGE_BT_709(Y1, U2, V2);
+            yuv2rgb_VIDEO_RANGE_BT_709(Y2, U2, V2);
+            yuv2rgb_VIDEO_RANGE_BT_709(Y3, U2, V2);
+            yuv2rgb_VIDEO_RANGE_BT_709(Y4, U2, V2);
+            
+            yuv2rgb_VIDEO_RANGE_BT_709(Y1, U3, V3);
+            yuv2rgb_VIDEO_RANGE_BT_709(Y2, U3, V3);
+            yuv2rgb_VIDEO_RANGE_BT_709(Y3, U3, V3);
+            yuv2rgb_VIDEO_RANGE_BT_709(Y4, U3, V3);
+            
+            yuv2rgb_VIDEO_RANGE_BT_709(Y1, U4, V4);
+            yuv2rgb_VIDEO_RANGE_BT_709(Y2, U4, V4);
+            yuv2rgb_VIDEO_RANGE_BT_709(Y3, U4, V4);
+            yuv2rgb_VIDEO_RANGE_BT_709(Y4, U4, V4);
+            
+            /*
+ 
+             YUV:(216,128,115) (0.847059,0.501961,0.450980) RGB: (210 240 233) (0.823529 0.941176 0.913725)
+             YUV:(210,128,115) (0.823529,0.501961,0.450980) RGB: (203 233 226) (0.796078 0.913725 0.886275)
+             YUV:(213,128,115) (0.835294,0.501961,0.450980) RGB: (206 236 229) (0.807843 0.925490 0.898039)
+             YUV:(209,128,115) (0.819608,0.501961,0.450980) RGB: (201 232 225) (0.788235 0.909804 0.882353)
+             YUV:(216,119,109) (0.847059,0.466667,0.427451) RGB: (199 245 214) (0.780392 0.960784 0.839216)
+             YUV:(210,119,109) (0.823529,0.466667,0.427451) RGB: (192 238 207) (0.752941 0.933333 0.811765)
+             YUV:(213,119,109) (0.835294,0.466667,0.427451) RGB: (195 241 210) (0.764706 0.945098 0.823529)
+             YUV:(209,119,109) (0.819608,0.466667,0.427451) RGB: (191 237 206) (0.749020 0.929412 0.807843)
+             YUV:(216,125,118) (0.847059,0.490196,0.462745) RGB: (215 239 226) (0.843137 0.937255 0.886275)
+             YUV:(210,125,118) (0.823529,0.490196,0.462745) RGB: (208 232 219) (0.815686 0.909804 0.858824)
+             YUV:(213,125,118) (0.835294,0.490196,0.462745) RGB: (211 235 223) (0.827451 0.921569 0.874510)
+             YUV:(209,125,118) (0.819608,0.490196,0.462745) RGB: (207 231 218) (0.811765 0.905882 0.854902)
+             YUV:(216,120,100) (0.847059,0.470588,0.392157) RGB: (183 249 216) (0.717647 0.976471 0.847059)
+             YUV:(210,120,100) (0.823529,0.470588,0.392157) RGB: (176 242 209) (0.690196 0.949020 0.819608)
+             YUV:(213,120,100) (0.835294,0.470588,0.392157) RGB: (179 246 212) (0.701961 0.964706 0.831373)
+             YUV:(209,120,100) (0.819608,0.470588,0.392157) RGB: (174 241 208) (0.682353 0.945098 0.815686)
+             
+             */
+            
+        }
+        
+        
         uint32_t y1  = ((uint32_t)Y2 << 24) + ((uint32_t)Y1 << 16) + ((uint32_t)Y2 << 8) + (uint32_t)Y1;
         uint32_t y2  = ((uint32_t)Y4 << 24) + ((uint32_t)Y3 << 16) + ((uint32_t)Y4 << 8) + (uint32_t)Y3;
         uint32_t uv  = ((uint32_t)V2 << 24) + ((uint32_t)U2 << 16) + ((uint32_t)V1 << 8) + (uint32_t)U1;
@@ -841,6 +904,8 @@ static UInt64 getTime()
                       mipmapLevel:0];
     }
     
+//#define DO_NOT_CHECK_OUT_OF_RANGE 1
+    
     // 比较 yuv 是否一致
     if (TRUE) {
         
@@ -945,7 +1010,7 @@ static UInt64 getTime()
                     
                     int diff = abs((int)(yuv420pixel) - (int)(nv12_y));
                     
-                   
+#if DO_NOT_CHECK_OUT_OF_RANGE
                     // yuv不在正确"区间" ----- 目前发现这样的diff可能在20以内
                     //
                     // (255, 104, 136)    --> 这个Y是255 超过了video-range的定义  rgb=(292.532013, 279.036011, 227.460007)
@@ -988,6 +1053,7 @@ static UInt64 getTime()
                     // 1. 原始的yuv超出'区间'(主要是Y平面,CbCr平面暂时没有发现越界)
                     // 2. 原始的yuv在'区间' 但不在‘空间’
                     // 排除这两种情况, 就不会有diff了
+#endif
                     
                     if (diff > 0) diffCount++;
                     if (diff > maxValue) {
@@ -1040,7 +1106,8 @@ static UInt64 getTime()
                     uint8_t nv12_y    = *(nv12_yBase  + y_stride * y_i  + y_j );
                     uint8_t nv12_u    = *(nv12_uvBase + nv12_Stride * i + j * 2) ;
                     uint8_t nv12_v    = *(nv12_uvBase + nv12_Stride * i + j * 2 + 1) ;
-                    
+                   
+#if DO_NOT_CHECK_OUT_OF_RANGE
                    // 检查Y是否在正确'区间'
                     if (nv12_y < kYRangeMin || nv12_y > kYRangeMax) {
                         continue ;
@@ -1068,6 +1135,7 @@ static UInt64 getTime()
                         ) {
                         continue ;
                     }
+#endif
                     
                     
                     // (225, 121, 134) diff abs:(0, 1, 0)
@@ -1093,7 +1161,6 @@ static UInt64 getTime()
                     if (diff > 0) vDiffCount++;
                     if (diff > vMaxValue) {
                         vMaxValue = diff;
-                        vDiffCount++;
                         NSLog(@"%s: vMaxValue up to %d; coord (x:%d, y:%d) h-coord (x:%d, y:%d) ; yuv420p'cr = %u nv12 (y:%u cb:%u cr:%u)"
                               ,__FUNCTION__
                               ,vMaxValue
